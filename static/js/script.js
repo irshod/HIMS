@@ -23,12 +23,36 @@
         }
     }
 
+    // Full Screen Button
     const fullscreenToggle = document.getElementById('fullscreenToggle');
     if (fullscreenToggle) {
         fullscreenToggle.addEventListener('click', toggleFullscreen);
     }
 
+
+    // Delete modal
+    document.addEventListener("DOMContentLoaded", () => {
+        const deleteModal = document.getElementById("deleteModal");
+        const deleteForm = document.getElementById("delete-form");
+        const deleteItemName = document.getElementById("delete-item-name");
     
+        // Event listener for showing the modal
+        deleteModal.addEventListener("show.bs.modal", (event) => {
+            const button = event.relatedTarget; // Button that triggered the modal
+            const itemName = button.getAttribute("data-item-name");
+            const deleteUrl = button.getAttribute("data-url");
+    
+            // Set the item name and form action
+            deleteItemName.textContent = itemName;
+            deleteForm.setAttribute("action", deleteUrl);
+    
+            console.log(`Delete modal triggered for item: ${itemName}, URL: ${deleteUrl}`);
+        });
+    });
+    
+    
+
+
     // Dual-list box setup
     function setupDualListBox(availableId, selectedId, addButtonId, removeButtonId, totalPriceId = null) {
         const availableSelect = document.getElementById(availableId);
@@ -159,7 +183,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const payButton = document.getElementById('pay-button');
         const paymentStatus = document.getElementById('payment-status');
-    
+
         if (payButton) {
             payButton.addEventListener('click', function () {
                 fetch(processPaymentURL, {
@@ -188,7 +212,7 @@
             });
         }
     });
-    
+
     function printInvoice() {
         const pdfUrl = generatePdfInvoiceURL; // Dynamically passed from the template
         const iframe = document.createElement('iframe');
@@ -200,7 +224,7 @@
             setTimeout(() => document.body.removeChild(iframe), 1000);
         };
     }
-    
-    
-    
+
+
+
 })();

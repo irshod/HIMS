@@ -81,16 +81,18 @@ def edit_user(request, user_id):
 
 
 @login_required
-def delete_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
+def delete_user(request, pk):
+    user = get_object_or_404(CustomUser, id=pk)
     if request.method == 'POST':
         user.delete()
-        messages.success(request, f"User '{user.email}' has been deleted.")
-        return JsonResponse({"status": "success", "message": f"User '{user.email}' deleted successfully"})
-    return JsonResponse({"status": "error", "message": "Invalid request"})
+        messages.success(request, f"User '{user.email}' has been deleted successfully.")
+        return redirect('user_list')
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
+    
+    
 
 # Role Management
-
 @login_required
 def list_role(request):
     roles = Role.objects.all()  # Updated to fetch Role model objects
@@ -147,14 +149,15 @@ def edit_role(request, role_id):
         form = RoleCreationForm(instance=role)
     return render(request, 'main/roles/role_edit.html', {'form': form})
 
+
 @login_required
-def delete_role(request, role_id):
-    role = get_object_or_404(Role, id=role_id)  # Updated to fetch Role model object
+def delete_role(request, pk):
+    role = get_object_or_404(Role, pk=pk)
     if request.method == 'POST':
         role.delete()
-        messages.success(request, f"Role '{role.name}' has been deleted.")
-        return JsonResponse({"status": "success", "message": f"Role '{role.name}' deleted successfully"})
-    return JsonResponse({"status": "error", "message": "Invalid request"})
+        messages.success(request, f"'{role.name}' has been deleted.")
+        return redirect('role_list')
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
 # Not Found Page
 @login_required

@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1>Medications</h1>
+    <a href="{% url 'medication_add' %}" class="btn btn-primary mb-3">Add Medication</a>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Dosage</th>
+          <th>Quantity</th>
+          <th>Reorder Level</th>
+          <th>Unit Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for medication in medications %}
+          <tr class="{% if medication.is_low_stock %}table-danger{% endif %}">
+            <td>{{ medication.name }}</td>
+            <td>{{ medication.dosage }}</td>
+            <td>{{ medication.quantity }}</td>
+            <td>{{ medication.reorder_level }}</td>
+            <td>{{ medication.unit_price|default:'-' }}</td>
+            <td>
+              <a href="{% url 'medication_update' medication.id %}" class="btn btn-warning btn-sm">Edit</a>
+
+              <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ medication.name }}" data-url="{% url 'medication_delete' medication.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE</button>
+              
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

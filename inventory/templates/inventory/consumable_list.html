@@ -1,0 +1,36 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1>Consumables</h1>
+    <a href="{% url 'consumable_add' %}" class="btn btn-primary mb-3">Add Consumable</a>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Reorder Level</th>
+          <th>Unit Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for consumable in consumables %}
+          <tr class="{% if consumable.is_low_stock %}table-danger{% endif %}">
+            <td>{{ consumable.name }}</td>
+            <td>{{ consumable.quantity }}</td>
+            <td>{{ consumable.reorder_level }}</td>
+            <td>{{ consumable.unit_price|default:'-' }}</td>
+            <td>
+              <a href="{% url 'consumable_update' consumable.id %}" class="btn btn-sm btn-warning">Edit</a>
+
+              <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ consumable.name }}" data-url="{% url 'consumable_delete' consumable.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE
+              </button>
+              
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

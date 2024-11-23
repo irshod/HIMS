@@ -5,8 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <meta name="csrfmiddlewaretoken" content="{{ csrf_token }}">
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <meta name="csrfmiddlewaretoken" content="{{ csrf_token }}" />
 
     <title>
       {% block title %}
@@ -28,8 +28,7 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.4/plugin/isBetween.js"></script>
 
     <!-- Link to CSS -->
-    <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
-
+    <link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
   </head>
   <body>
     <!-- Pre Loader -->
@@ -55,29 +54,28 @@
       </div>
     </div>
 
-
-     <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to delete <strong id="delete-item-name"></strong>?
-          </div>
-          <div class="modal-footer">
-            <form method="POST" id="delete-form">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger">Yes, Delete</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            </form>
-          </div>
-        </div>
+    <!-- Delete Confirmation Modal -->
+    <!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong id="delete-item-name"></strong>?
+      </div>
+      <div class="modal-footer">
+        <form method="post" id="delete-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </form>
       </div>
     </div>
-
+  </div>
+</div>
 
 
     <!-- Scripts -->
@@ -96,8 +94,8 @@
 
     <!-- Custom Script -->
     <script src="{% static 'js/script.js' %}"></script>
-     
+
     <!-- Calendar JavaScript -->
-     <script src="{% static 'js/custom-calendar.js' %}"></script>
+    <script src="{% static 'js/custom-calendar.js' %}"></script>
   </body>
 </html>
