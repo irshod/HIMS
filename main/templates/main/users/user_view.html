@@ -1,0 +1,55 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    View User | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="widget-area-2 proclinic-box-shadow">
+    <h3 class="widget-title">User Details</h3>
+    <table class="table table-striped">
+      <tr>
+        <th>User ID</th>
+        <td>{{ user.id }}</td>
+      </tr>
+      <tr>
+        <th>First Name</th>
+        <td>{{ user.first_name }}</td>
+      </tr>
+      <tr>
+        <th>Last Name</th>
+        <td>{{ user.last_name }}</td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td>{{ user.email }}</td>
+      </tr>
+      <tr>
+        <th>Birthdate</th>
+        <td>{{ user.birthdate }}</td>
+      </tr>
+      <tr>
+        <th>Contact Number</th>
+        <td>{{ user.contact_number }}</td>
+      </tr>
+      <tr>
+        <th>Address</th>
+        <td>{{ user.address }}</td>
+      </tr>
+      <tr>
+        <th>Role</th>
+        <td>
+          {% for group in user.groups.all %}
+            {{ group.name }}{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            No Role Assigned
+          {% endfor %}
+        </td>
+      </tr>
+    </table>
+    <a href="{% url 'user_list' %}" class="btn btn-secondary">Back to User List</a>
+  </div>
+</div>
+{% endblock content %}

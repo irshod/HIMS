@@ -1,0 +1,32 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %} Edit User | HIMS {% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="widget-area-2 proclinic-box-shadow">
+        <h3 class="widget-title">Edit User</h3>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="form-group col-md-6">{{ form.first_name.label_tag }} {{ form.first_name }}</div>
+            <div class="form-group col-md-6">{{ form.last_name.label_tag }} {{ form.last_name }}</div>
+            <div class="form-group col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
+            <div class="form-group col-md-6">{{ form.birthdate.label_tag }} {{ form.birthdate }}</div>
+            <div class="form-group col-md-6">{{ form.contact_number.label_tag }} {{ form.contact_number }}</div>
+            <div class="form-group col-md-6">{{ form.address.label_tag }} {{ form.address }}</div>
+            <div class="form-group col-md-6">{{ form.role.label_tag }} {{ form.role }}</div>
+            <div class="form-group col-md-6 mb-3">
+              <button type="submit" class="btn btn-primary">Submit</button>
+              <a href="{% url 'user_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

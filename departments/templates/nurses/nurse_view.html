@@ -1,0 +1,26 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    View Nurse | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <h3 class="widget-title">Nurse Details</h3>
+  <table class="table table-striped">
+    <tr><th>Name</th><td>{{ nurse.user.first_name }} {{ nurse.user.last_name }}</td></tr>
+    <tr><th>Qualification</th><td>{{ nurse.qualification }}</td></tr>
+    <tr><th>Shift</th><td>{{ nurse.shift }}</td></tr>
+    <tr><th>Hourly Rate</th><td>{{ nurse.hourly_rate }}</td></tr>
+    <tr><th>Assigned Services</th>
+      <td>
+        {% for service in nurse.assigned_services.all %}
+          {{ service.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </td>
+    </tr>
+  </table>
+  <a href="{% url 'list_nurse' %}" class="btn btn-secondary">Back to List</a>
+</div>
+{% endblock content %}

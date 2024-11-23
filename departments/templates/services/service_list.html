@@ -1,0 +1,39 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}
+  Service List | HIMS
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <h3 class="widget-title">Services</h3>
+    <a href="{% url 'add_service' %}" class="btn btn-primary"><span class="ti-plus"></span> Add New Service</a>
+    <table class="table table-bordered mt-3">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Duration</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+          <tr>
+            <td>{{ service.name }}</td>
+            <td>{{ service.price }}</td>
+            <td>{{ service.duration }}</td>
+            <td>{{ service.special_notes }}</td>
+            <td>
+              <a href="{% url 'edit_service' service.id %}" class="btn btn-primary"><span class="ti-pencil-alt"></span> Edit</a>
+              
+              <button type="button" class="btn btn-danger btn-delete mt-3 mb-0" data-item-name="{{ service.name }}" data-url="{% url 'delete_service' service.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

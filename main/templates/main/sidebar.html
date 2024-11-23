@@ -1,0 +1,166 @@
+{% load static %}
+
+<!-- Sidebar -->
+<nav id="sidebar" class="hims-bg">
+  <ul class="list-unstyled components">
+    <li class="active">
+      <a href="#nav-dashboard" data-bs-toggle="collapse" aria-expanded="true"><span class="fas fa-home"></span> Dashboard</a>
+    </li>
+
+    <!-- Patient Section -->
+    <li>
+      <a href="#patientSubmenu" data-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-user-injured"></span> Patients
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="patientSubmenu">
+        <li>
+          <a href="{% url 'patient_list' %}"><span class="fas fa-list"></span> All Patients</a>
+        </li>
+        <li>
+          <a href="{% url 'add_patient' %}"><span class="fas fa-plus-circle"></span> Add Patient</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Appointment Section -->
+    <li>
+      <a href="#appointmentSubmenu" data-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-calendar-alt"></span> Appointments
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="appointmentSubmenu">
+        <li>
+          <a href="{% url 'appointments_list' %}"><span class="fas fa-list"></span> All Appointments</a>
+        </li>
+        <li>
+          <a href="{% url 'create_appointment' %}"><span class="fas fa-plus-circle"></span> Create Appointment</a>
+        </li>
+        <li>
+          <a href="{% url 'calendar_view' %}"><span class="fas fa-calendar"></span> Calendar</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Finance Section -->
+    <li>
+      <a href="#nav-finance" data-bs-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-money-bill-alt"></span> Finance
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="nav-finance">
+        <li>
+          <a href="{% url 'payment_list' %}"><span class="fas fa-list"></span> All Payments</a>
+        </li>
+        <li>
+          <a href="{% url 'invoice_list' %}"><span class="fas fa-file-invoice"></span> Invoices</a>
+        </li>
+        <li>
+          <a href="{% url 'doctor_earnings_list' %}"><span class="fas fa-dollar-sign"></span> Doctor Earnings</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Room Management Section -->
+    <li>
+      <a href="#nav-rooms" data-bs-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-bed"></span> Room Management
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="nav-rooms">
+        <li>
+          <a href="add-room.html"><span class="fas fa-plus-circle"></span> Add Room Allotment</a>
+        </li>
+        <li>
+          <a href="rooms.html"><span class="fas fa-list"></span> All Rooms</a>
+        </li>
+        <li>
+          <a href="edit-room.html"><span class="fas fa-edit"></span> Edit Room Allotment</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Departments Section -->
+    <li>
+      <a href="#nav-departments" data-bs-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-building"></span> Departments
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="nav-departments">
+        <li>
+          <a href="{% url 'department_list' %}"><span class="fas fa-list"></span> All Departments</a>
+        </li>
+        <li>
+          <a href="{% url 'service_list' %}"><span class="fas fa-concierge-bell"></span> Services</a>
+        </li>
+        <li>
+          <a href="{% url 'list_doctor' %}"><span class="fas fa-user-md"></span> Doctors</a>
+        </li>
+        <li>
+          <a href="{% url 'list_nurse' %}"><span class="fas fa-user-nurse"></span> Nurses</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- User Management Section -->
+    <li>
+      <a href="#nav-roles" data-bs-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-users-cog"></span> User Management
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="nav-roles">
+        <li>
+          <a href="{% url 'user_list' %}"><span class="fas fa-list"></span> Users List</a>
+        </li>
+        <li>
+          <a href="{% url 'add_user' %}"><span class="fas fa-user-plus"></span> Add User</a>
+        </li>
+        <li>
+          <a href="{% url 'role_list' %}"><span class="fas fa-user-tag"></span> Roles List</a>
+        </li>
+        <li>
+          <a href="{% url 'add_role' %}"><span class="fas fa-plus-circle"></span> Add Role</a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Settings Section -->
+    <li>
+      <a href="#nav-pages" data-bs-toggle="collapse" aria-expanded="false">
+        <span class="fas fa-cog"></span> Settings
+        <span class="fas fa-caret-down float-end"></span>
+      </a>
+      <ul class="collapse list-unstyled" id="nav-pages">
+        <li>
+          <a href="#"><span class="fas fa-user-cog"></span> Edit Profile</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-exclamation-triangle"></span> 404</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-file-alt"></span> Blank Page</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-tags"></span> Pricing</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-database"></span> Backup</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-file-invoice-dollar"></span> Invoice</a>
+        </li>
+        <li>
+          <a href="#"><span class="fas fa-hourglass-half"></span> Coming Soon</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+  <!-- Sidebar Help Section -->
+  <div class="sidebar-help animated fadeIn">
+    <h5><span class="fas fa-comments"></span> Need Help</h5>
+    <h6><span class="fas fa-mobile-alt"></span> +992 92 764 11 17</h6>
+    <h6><span class="fas fa-envelope"></span> mkoziev@na.edu</h6>
+  </div>
+</nav>
+<!-- /Sidebar -->

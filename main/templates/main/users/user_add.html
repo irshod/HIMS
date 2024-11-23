@@ -1,0 +1,58 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}
+  Add User | HIMS
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="widget-area-2 hims-box-shadow">
+          <h3 class="widget-title">Add User</h3>
+          <form method="post" action="">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="form-group col-md-6">{{ form.first_name.label_tag }} {{ form.first_name }}</div>
+              <div class="form-group col-md-6">{{ form.last_name.label_tag }} {{ form.last_name }}</div>
+              <div class="form-group col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
+              <div class="form-group col-md-6">{{ form.password1.label_tag }} {{ form.password1 }}</div>
+              <div class="form-group col-md-6">{{ form.password2.label_tag }} {{ form.password2 }}</div>
+              <div class="form-group col-md-6">{{ form.birthdate.label_tag }} {{ form.birthdate }}</div>
+              <div class="form-group col-md-6">{{ form.contact_number.label_tag }} {{ form.contact_number }}</div>
+              <div class="form-group col-md-6">{{ form.address.label_tag }} {{ form.address }}</div>
+              <div class="form-group col-md-6">{{ form.role.label_tag }} {{ form.role }}</div>
+              <div class="form-group col-md-6 mb-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a href="{% url 'user_list' %}" class="btn btn-secondary">Cancel</a>
+              </div>
+            </div>
+
+            {% if form.errors %}
+    <div class="alert alert-danger">
+        <a class="close" href="#" data-dismiss="alert">×</a>
+        <strong>There were errors with your submission:</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                <li>
+                    <strong>{{ field.label }}:</strong>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

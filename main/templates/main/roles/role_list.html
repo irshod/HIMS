@@ -1,0 +1,41 @@
+{% extends 'main/base.html' %}
+{% block title %} Roles | HIMS {% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h3 class="block-title">Roles</h3>
+  <a href="{% url 'add_role' %}" class="btn btn-primary"><span class="ti-plus"></span> Add New Role</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Role ID</th>
+        <th>Role Name</th>
+        <th>Permissions</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for role in page_obj.object_list %}
+        <tr>
+          <td>{{ role.id }}</td>
+          <td>{{ role.name }}</td>
+          <td>
+            {% with role.permissions.all|slice:":3" as limited_permissions %}
+              {% for permission in limited_permissions %}
+                {{ permission.name }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+              {% if role.permissions.count > 3 %} ... {% endif %}
+            {% endwith %}
+            {% if role.permissions.count == 0 %} No Permissions Assigned {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'view_role' role.id %}" class="btn btn-info"><span class="ti-eye"></span> VIEW</a>
+            <a href="{% url 'edit_role' role.id %}" class="btn btn-primary"><span class="ti-pencil-alt"></span> EDIT</a>
+            <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ role.name }}" data-url="{% url 'delete_role' role.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE</button>
+          </td>
+        </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+</div>
+{% endblock %}

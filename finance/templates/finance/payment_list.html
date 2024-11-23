@@ -1,0 +1,17 @@
+<h2>Payment List</h2>
+<table>
+    <tr>
+        <th>Patient</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Status</th>
+    </tr>
+    {% for payment in payments %}
+    <tr>
+        <td>{{ payment.patient }}</td>
+        <td>{{ payment.amount }}</td>
+        <td>{{ payment.payment_date }}</td>
+        <td>{{ payment.status }}</td>
+    </tr>
+    {% endfor %}
+</table>

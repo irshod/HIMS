@@ -1,0 +1,129 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Patient Profile | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">Patient Profile: {{ patient.first_name }} {{ patient.last_name }}</h3>
+    
+    <!-- Patient Basic Information -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Basic Information</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ patient.first_name }} {{ patient.last_name }}</p>
+            <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
+            <p><strong>Gender:</strong> {{ patient.get_gender_display }}</p>
+            <p><strong>Contact Number:</strong> {{ patient.contact_number }}</p>
+            <p><strong>Email:</strong> {{ patient.email }}</p>
+            <p><strong>Address:</strong> {{ patient.address }}</p>
+            <p><strong>Emergency Contact:</strong> {{ patient.emergency_contact }}</p>
+        </div>
+    </div>
+    
+    <!-- Appointments Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Appointments</h5>
+        </div>
+        <div class="card-body">
+            {% if appointments %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Department</th>
+                            <th>Doctor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.appointment_date|date:"Y-m-d H:i" }}</td>
+                                <td>{{ appointment.get_appointment_type_display }}</td>
+                                <td>{{ appointment.get_status_display }}</td>
+                                <td>{{ appointment.department.name }}</td>
+                                <td>Dr. {{ appointment.doctor.get_full_name }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No appointments found.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Prescriptions Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Prescriptions</h5>
+        </div>
+        <div class="card-body">
+            {% if prescriptions %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Doctor</th>
+                            <th>Medication</th>
+                            <th>Dosage</th>
+                            <th>Recommendations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prescription in prescriptions %}
+                            <tr>
+                                <td>{{ prescription.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>Dr. {{ prescription.doctor.get_full_name }}</td>
+                                <td>{{ prescription.medication }}</td>
+                                <td>{{ prescription.dosage }}</td>
+                                <td>{{ prescription.recommendations }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No prescriptions found.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Treatment History Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Treatment History</h5>
+        </div>
+        <div class="card-body">
+            {% if treatment_history %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Doctor</th>
+                            <th>Treatment Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for treatment in treatment_history %}
+                            <tr>
+                                <td>{{ treatment.date|date:"Y-m-d H:i" }}</td>
+                                <td>Dr. {{ treatment.doctor.get_full_name }}</td>
+                                <td>{{ treatment.treatment_notes }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No treatment history found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{% url 'patient_list' %}" class="btn btn-secondary">Back to Patient List</a>
+</div>
+{% endblock content %}

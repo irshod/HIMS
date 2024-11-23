@@ -1,0 +1,99 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Appointment List | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">Appointment List</h3>
+    
+    <!-- Button to create a new appointment -->
+    {% if request.user|has_permission:"add_appointment" %}
+        <a href="{% url 'create_appointment' %}" class="btn btn-primary mb-3">Add New Appointment</a>
+    {% endif %}
+    
+    <!-- Appointment List Table -->
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Department</th>
+                <th>Services</th>
+                <th>Date & Time</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+                    <td>Dr. {{ appointment.doctor.get_full_name }}</td>
+                    <td>{{ appointment.department.name }}</td>
+                    <td>
+                        <ul>
+                            {% for service in appointment.services.all %}
+                                <li>{{ service.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>{{ appointment.appointment_date|date:"Y-m-d H:i" }}</td>
+                    <td>{{ appointment.get_appointment_type_display }}</td>
+                    <td>{{ appointment.get_status_display }}</td>
+                    <td>
+                        {% if appointment.invoice %}
+                            <!-- If invoice exists -->
+                            {% if appointment.payment_status == "paid" %}
+                                <a href="{% url 'generate_pdf_invoice' appointment.id %}" target="_blank" class="btn btn-secondary btn-sm">PDF</a>
+                                <span class="badge badge-success">Paid</span>
+                            {% else %}
+                                <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info btn-sm">Generate Bill</a>
+                                <span class="badge badge-warning">Unpaid</span>
+                            {% endif %}
+                        {% else %}
+                            <!-- If no invoice exists, show the "Generate Bill" button -->
+                            <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info btn-sm">Generate Bill</a>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-info btn-sm">View</a>
+                        
+                        <!-- Action buttons based on status -->
+                        {% if appointment.status == "pending" %}
+                            {% if request.user|has_permission:"cancel_appointment" %}
+                                <a href="{% url 'cancel_appointment' appointment.id %}" 
+                                   class="btn btn-danger btn-sm" 
+                                   onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                                    Cancel
+                                </a>
+                            {% endif %}
+                        {% elif appointment.status == "in_progress" %}
+                            {% if request.user|has_permission:"update_appointment_status" %}
+                                <a href="{% url 'mark_awaiting_test' appointment.id %}" class="btn btn-warning btn-sm">Awaiting Test</a>
+                                <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success btn-sm">Complete</a>
+                            {% endif %}
+                        {% elif appointment.status == "awaiting_test" %}
+                            {% if request.user|has_permission:"update_appointment_status" %}
+                                <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success btn-sm">Complete</a>
+                            {% endif %}
+                        {% elif appointment.status == "completed" %}
+                            <span class="text-success">Completed</span>
+                        {% elif appointment.status == "cancelled" %}
+                            <span class="text-danger">Cancelled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No appointments found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

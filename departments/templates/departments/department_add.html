@@ -1,0 +1,110 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    Add Department | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="widget-area-2 proclinic-box-shadow">
+    <h3 class="widget-title">Add Department</h3>
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          {{ form.name.label_tag }}
+          {{ form.name }}
+        </div>
+
+        <!-- Dual List Box for Services -->
+        <div class="form-group col-md-12 dual-box-init" 
+             data-available-id="availableServices" 
+             data-selected-id="selectedServices"
+             data-add-button-id="btn-add-service" 
+             data-remove-button-id="btn-remove-service">
+          <div class="row">
+            <div class="col-md-5">
+              <label>Available Services</label>
+              <select id="availableServices" class="form-control" multiple size="10">
+                {% for service in form.services.field.queryset %}
+                  <option value="{{ service.id }}">{{ service.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2 d-flex flex-column justify-content-center">
+              <button type="button" id="btn-add-service" class="btn btn-primary mb-2"> &gt;&gt; </button>
+              <button type="button" id="btn-remove-service" class="btn btn-primary"> &lt;&lt; </button>
+            </div>
+            <div class="col-md-5">
+              <label>Selected Services</label>
+              <select id="selectedServices" class="form-control" name="services" multiple size="10"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual List Box for Doctors -->
+        <div class="form-group col-md-12 dual-box-init" 
+             data-available-id="availableDoctors" 
+             data-selected-id="selectedDoctors"
+             data-add-button-id="btn-add-doctor" 
+             data-remove-button-id="btn-remove-doctor">
+          <div class="row">
+            <div class="col-md-5">
+              <label>Available Doctors</label>
+              <select id="availableDoctors" class="form-control" multiple size="10">
+                {% for doctor in form.doctors.field.queryset %}
+                  <option value="{{ doctor.id }}">{{ doctor.first_name }} {{ doctor.last_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2 d-flex flex-column justify-content-center">
+              <button type="button" id="btn-add-doctor" class="btn btn-primary mb-2"> &gt;&gt; </button>
+              <button type="button" id="btn-remove-doctor" class="btn btn-primary"> &lt;&lt; </button>
+            </div>
+            <div class="col-md-5">
+              <label>Selected Doctors</label>
+              <select id="selectedDoctors" class="form-control" name="doctors" multiple size="10"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual List Box for Nurses -->
+        <div class="form-group col-md-12 dual-box-init" 
+             data-available-id="availableNurses" 
+             data-selected-id="selectedNurses"
+             data-add-button-id="btn-add-nurse" 
+             data-remove-button-id="btn-remove-nurse">
+          <div class="row">
+            <div class="col-md-5">
+              <label>Available Nurses</label>
+              <select id="availableNurses" class="form-control" multiple size="10">
+                {% for nurse in form.nurses.field.queryset %}
+                  <option value="{{ nurse.id }}">{{ nurse.first_name }} {{ nurse.last_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2 d-flex flex-column justify-content-center">
+              <button type="button" id="btn-add-nurse" class="btn btn-primary mb-2"> &gt;&gt; </button>
+              <button type="button" id="btn-remove-nurse" class="btn btn-primary"> &lt;&lt; </button>
+            </div>
+            <div class="col-md-5">
+              <label>Selected Nurses</label>
+              <select id="selectedNurses" class="form-control" name="nurses" multiple size="10"></select>
+            </div>
+          </div>
+        </div>
+         <div class="form-group col-md-12">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+        </div>
+
+        <div class="form-group col-md-6 mb-3">
+          <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+          <a href="{% url 'department_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

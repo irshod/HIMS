@@ -1,0 +1,48 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="text-center">Daily Appointment Calendar</h2>
+    
+    <!-- Create Appointment Button -->
+    <div class="text-right mb-3">
+        <a href="{% url 'create_appointment' %}" class="btn btn-primary">Create Appointment</a>
+    </div>
+
+    <!-- Filters for Department and Doctor -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="departmentFilter">Department:</label>
+            <select id="departmentFilter" class="form-control">
+                <option value="">All Departments</option>
+                {% for department in departments %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="doctorFilter">Doctor:</label>
+            <select id="doctorFilter" class="form-control">
+                <option value="">All Doctors</option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}" data-department="{{ doctor.department.id }}">
+                        Dr. {{ doctor.get_full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Date Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button id="prevDay" class="btn btn-secondary">&lt; Previous Day</button>
+        <h4 id="dayLabel" class="mb-0"></h4>
+        <button id="nextDay" class="btn btn-secondary">Next Day &gt;</button>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="calendar-container">
+        <div id="hoursContainer" class="hours-grid"></div>
+    </div>
+</div>
+{% endblock content %}

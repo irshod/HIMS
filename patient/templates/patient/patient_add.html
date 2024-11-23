@@ -1,0 +1,23 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Add New Patient | HIMS{% endblock title %}
+
+{% block content %}
+{% if request.user|has_permission:"add_patient" %}
+<div class="container-fluid">
+    <h3 class="widget-title">Add New Patient</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Register Patient</button>
+        <a href="{% url 'patient_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+    You do not have permission to access this page.
+</div>
+{% endif %}
+{% endblock content %}

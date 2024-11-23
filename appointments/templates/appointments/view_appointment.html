@@ -1,0 +1,100 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Appointment Details | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">Appointment Details</h3>
+
+    <!-- Appointment Information -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Basic Information</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Patient:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</p>
+            <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}</p>
+            <p><strong>Department:</strong> {{ appointment.department.name }}</p>
+            <p><strong>Appointment Date:</strong> {{ appointment.appointment_date|date:"Y-m-d H:i" }}</p>
+            <p><strong>Appointment Type:</strong> {{ appointment.get_appointment_type_display }}</p>
+            <p><strong>Status:</strong> {{ appointment.get_status_display }}</p>
+            <p><strong>Payment Status:</strong> {{ appointment.get_payment_status_display }}</p>
+        </div>
+    </div>
+
+    <!-- Services and Cost Summary -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Services and Cost</h5>
+        </div>
+        <div class="card-body">
+            <ul>
+                {% for service in appointment.service_set.all %}
+                    <li>{{ service.name }} - ${{ service.price }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Total Cost:</strong> ${{ appointment.total_cost }}</p>
+        </div>
+    </div>
+
+    <!-- Actions based on appointment status -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <!-- View Button -->
+                <a href="{% url 'appointments_list' %}" class="btn btn-secondary">Back to Appointments List</a>
+                
+                <!-- Status-specific buttons -->
+                {% if appointment.status == "pending" %}
+                    {% if request.user|has_permission:"update_appointment_status" %}
+                        <a href="{% url 'start_appointment' appointment.id %}" class="btn btn-primary">Start Appointment</a>
+                    {% endif %}
+                    {% if request.user|has_permission:"cancel_appointment" %}
+                        <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-danger">Cancel Appointment</a>
+                    {% endif %}
+                {% elif appointment.status == "in_progress" %}
+                    {% if request.user|has_permission:"update_appointment_status" %}
+                        <a href="{% url 'mark_awaiting_test' appointment.id %}" class="btn btn-warning">Awaiting Test</a>
+                        <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success">Complete Appointment</a>
+                    {% endif %}
+                {% elif appointment.status == "awaiting_test" %}
+                    {% if request.user|has_permission:"update_appointment_status" %}
+                        <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success">Complete Appointment</a>
+                    {% endif %}
+                {% elif appointment.status == "completed" %}
+                    <span class="text-success">This appointment is completed.</span>
+                {% elif appointment.status == "cancelled" %}
+                    <span class="text-danger">This appointment is cancelled.</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Section -->
+    {% if appointment.payment_status == "unpaid" %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Payment</h5>
+            </div>
+            <div class="card-body">
+                <p>This appointment has not been paid yet.</p>
+                <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info">Generate Invoice</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Payment</h5>
+            </div>
+            <div class="card-body">
+                <p><span class="text-success">This appointment has been paid.</span></p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

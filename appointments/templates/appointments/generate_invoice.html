@@ -1,0 +1,30 @@
+{% extends "main/base.html" %}
+{% block title %}Generate Invoice{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Invoice for Appointment #{{ appointment.id }}</h3>
+    <p><strong>Patient:</strong> {{ appointment.patient }}</p>
+    <p><strong>Doctor:</strong> {{ appointment.doctor }}</p>
+    <p><strong>Services:</strong></p>
+    <ul>
+        {% for service in appointment.services.all %}
+        <li>{{ service.name }} - ${{ service.price }}</li>
+        {% endfor %}
+    </ul>
+    <p><strong>Total Amount:</strong> $<span id="total-amount">{{ invoice.total_amount }}</span></p>
+    <p><strong>Status:</strong> <span id="payment-status">{{ invoice.status|default:"Unpaid" }}</span></p>
+
+    <button id="pay-button" class="btn btn-primary">Mark as Paid</button>
+
+    <!-- Return to Appointment List Button -->
+    <a href="{% url 'appointments_list' %}" class="btn btn-secondary mt-3">Return to Appointment List</a>
+
+    <!-- Error Message -->
+    <div id="payment-error" class="text-danger mt-2" style="display: none;"></div>
+</div>
+<script>
+    const processPaymentURL = "{% url 'process_payment' appointment.id %}";
+</script>
+
+{% endblock content %}

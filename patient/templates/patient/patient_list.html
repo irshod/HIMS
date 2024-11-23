@@ -1,0 +1,80 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Patient List | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">Patient List</h3>
+    
+    <!-- Filters -->
+    <div class="mb-3">
+        <a href="?filter=all" class="btn {% if filter_type == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All Patients</a>
+        <a href="?filter=ipd" class="btn {% if filter_type == 'ipd' %}btn-primary{% else %}btn-secondary{% endif %}">IPD Patients</a>
+        <a href="?filter=opd" class="btn {% if filter_type == 'opd' %}btn-primary{% else %}btn-secondary{% endif %}">OPD Patients</a>
+    </div>
+
+    <!-- Add New Patient Button -->
+    {% if request.user|has_permission:"add_patient" %}
+        <a href="{% url 'add_patient' %}" class="btn btn-primary mb-3">Add New Patient</a>
+    {% endif %}
+
+    <!-- Patient Table -->
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Contact Number</th>
+                <th>Date of Birth</th>
+                <th>Patient Type</th> <!-- Add this column -->
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.contact_number }}</td>
+                <td>{{ patient.date_of_birth|date:"Y-m-d" }}</td>
+                <td>{{ patient.get_patient_type_display }}</td> <!-- Display patient type -->
+                <td>
+                    <a href="{% url 'patient_profile' patient.id %}" class="btn btn-info btn-sm">View Profile</a>
+                    {% if request.user|has_permission:"edit_patient" %}
+                        <a href="{% url 'edit_patient' patient.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No patients found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        
+    </table>
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if patients.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ patients.previous_page_number }}&filter={{ filter_type }}">Previous</a>
+                </li>
+            {% endif %}
+            {% for num in patients.paginator.page_range %}
+                <li class="page-item {% if patients.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&filter={{ filter_type }}">{{ num }}</a>
+                </li>
+            {% endfor %}
+            {% if patients.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ patients.next_page_number }}&filter={{ filter_type }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock content %}

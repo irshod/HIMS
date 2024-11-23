@@ -1,0 +1,85 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Create Appointment | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">Create New Appointment</h3>
+    <form method="post" action="">
+        {% csrf_token %}
+
+        <!-- Patient and Department Selection -->
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                {{ form.patient.label_tag }}
+                {{ form.patient }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.department.label_tag }}
+                {{ form.department }}
+            </div>
+        </div>
+
+        <!-- Doctor Selection -->
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                {{ form.doctor.label_tag }}
+                {{ form.doctor }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.appointment_type.label_tag }}
+                {{ form.appointment_type }}
+            </div>
+        </div>
+
+        <!-- Appointment Date -->
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                {{ form.appointment_date.label_tag }}
+                {{ form.appointment_date }}
+            </div>
+        </div>
+
+        <!-- Services Selection -->
+        <div class="form-group">
+            <label for="availableServices">Available Services</label>
+            <div class="row">
+                <div class="col-md-5">
+                    <select id="availableServices" class="form-control" multiple size="10">
+                        <!-- Services will be dynamically populated -->
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex flex-column justify-content-center">
+                    <button type="button" id="btn-add" class="btn btn-primary mb-2"> &gt;&gt; </button>
+                    <button type="button" id="btn-remove" class="btn btn-primary"> &lt;&lt; </button>
+                </div>
+                <div class="col-md-5">
+                    <label for="selectedServices">Selected Services</label>
+                    <select id="selectedServices" name="services" class="form-control" multiple size="10"></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Cost Display -->
+        <div class="form-group">
+            <label>Total Price: $<span id="totalPrice">0.00</span></label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Appointment</button>
+        <a href="{% url 'appointments_list' %}" class="btn btn-secondary">Cancel</a>
+
+        {% if form.errors %}
+        <p>Fields with errors:</p>
+        <ul>
+            {% for field_name, errors in form.errors.items %}
+                <li>{{ field_name }}: {{ errors|join:", " }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </form>
+</div>
+{% endblock content %}
+

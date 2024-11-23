@@ -1,0 +1,57 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    Edit Nurse | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <h3 class="widget-title">Edit Nurse</h3>
+  <form method="post" action="">
+    {% csrf_token %}
+    <div class="form-row">
+      <div class="form-group col-md-6">{{ form.user.label_tag }}{{ form.user }}</div>
+      <div class="form-group col-md-6">{{ form.qualification.label_tag }}{{ form.qualification }}</div>
+      <div class="form-group col-md-6">{{ form.shift.label_tag }}{{ form.shift }}</div>
+      <div class="form-group col-md-6">{{ form.hourly_rate.label_tag }}{{ form.hourly_rate }}</div>
+
+      <!-- Dual-List Box for Assigned Services -->
+      <div class="form-group col-md-12">
+        <label for="availableServices">Available Services</label>
+        <div class="row">
+          <div class="col-md-5">
+            <select id="availableServices" class="form-control dual-box-init" data-available-id="availableServices" data-selected-id="selectedServices" data-add-button-id="btn-add" data-remove-button-id="btn-remove" multiple size="10">
+              {% for service in service_queryset %}
+                {% if service not in nurse.assigned_services.all %}
+                  <option value="{{ service.id }}" data-price="{{ service.price }}">
+                    {{ service.name }} - ${{ service.price }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 d-flex flex-column justify-content-center">
+            <button type="button" id="btn-add" class="btn btn-primary mb-2"> &gt;&gt; </button>
+            <button type="button" id="btn-remove" class="btn btn-primary"> &lt;&lt; </button>
+          </div>
+          <div class="col-md-5">
+            <label for="selectedServices">Assigned Services</label>
+            <select id="selectedServices" name="assigned_services" class="form-control" multiple size="10">
+              {% for service in nurse.assigned_services.all %}
+                <option value="{{ service.id }}" selected>
+                  {{ service.name }} - ${{ service.price }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit and Cancel Buttons -->
+      <button type="submit" class="btn btn-primary">Update</button>
+      <a href="{% url 'list_nurse' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock content %}

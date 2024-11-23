@@ -1,0 +1,75 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    Department List | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <h3 class="widget-title">Departments</h3>
+  <a href="{% url 'add_department' %}" class="btn btn-primary"><span class="ti-plus"></span> Add New Department</a>
+  <table class="table table-bordered mt-3">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Services</th>
+        <th>Doctors</th>
+        <th>Nurses</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for department in page_obj %}
+        <tr>
+          <td>{{ department.name }}</td>
+          <td>
+            {% for service in department.services.all %}
+              {{ service.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for doctor in department.doctors.all %}
+              {{ doctor.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for nurse in department.nurses.all %}
+              {{ nurse.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td>{{ department.description }}</td>
+          <td>
+            <a href="{% url 'view_department' department.id %}" class="btn btn-info">View</a>
+            <a href="{% url 'edit_department' department.id %}" class="btn btn-primary">Edit</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6">No departments found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <nav aria-label="Page navigation">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+      {% endif %}
+      {% for i in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+          <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock content %}

@@ -1,0 +1,67 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}  <!-- Load custom permissions filter -->
+
+{% block title %}
+    Add Role | HIMS
+{% endblock title %}
+
+{% block content %}
+{% if request.user|has_permission:"add_role" %} <!-- Check if user has add_role permission -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="widget-area-2 proclinic-box-shadow">
+                <h3 class="widget-title">Add Role</h3>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                        </div>
+
+                        <!-- Dual List Box for Permissions -->
+                        <div class="form-group col-md-12 dual-box-init" 
+                             data-available-id="availableItems" 
+                             data-selected-id="selectedItems"
+                             data-add-button-id="btn-add" 
+                             data-remove-button-id="btn-remove">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <label>All Permissions</label>
+                                    <select id="availableItems" class="form-control" multiple size="10">
+                                        {% for permission in form.permissions.field.queryset %}
+                                            <option value="{{ permission.id }}">{{ permission.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex flex-column justify-content-center">
+                                    <button type="button" id="btn-add" class="btn btn-primary mb-2"> &gt;&gt; </button>
+                                    <button type="button" id="btn-remove" class="btn btn-primary"> &lt;&lt; </button>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>Selected Permissions</label>
+                                    <select id="selectedItems" class="form-control" name="permissions" multiple size="10">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-6 mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                            <a href="{% url 'role_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- If user does not have permission to add roles -->
+<div class="alert alert-warning" role="alert">
+    You do not have permission to access this page.
+</div>
+{% endif %}
+{% endblock content %}

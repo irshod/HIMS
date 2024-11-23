@@ -1,0 +1,79 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+    Edit Doctor | HIMS
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+  <h3 class="widget-title">Edit Doctor</h3>
+  <form method="post" action="">
+    {% csrf_token %}
+    <div class="form-row">
+      <div class="form-group col-md-6">{{ form.user.label_tag }}{{ form.user }}</div>
+      <div class="form-group col-md-6">{{ form.specialty.label_tag }}{{ form.specialty }}</div>
+      <div class="form-group col-md-6">{{ form.qualification.label_tag }}{{ form.qualification }}</div>
+      <div class="form-group col-md-6">{{ form.employment_type.label_tag }}{{ form.employment_type }}</div>
+      <div class="form-group col-md-6">{{ form.base_salary.label_tag }}{{ form.base_salary }}</div>
+      <div class="form-group col-md-6">{{ form.salary_per_service.label_tag }}{{ form.salary_per_service }}</div>
+
+      <!-- Dual-List Box for Assigned Services -->
+      <div class="form-group col-md-12">
+        <label for="availableServices">Available Services</label>
+        <div class="row">
+          <div class="col-md-5">
+            <select id="availableServices" class="form-control dual-box-init" multiple size="10">
+              {% for service in service_queryset %}
+                {% if service not in doctor.assigned_services.all %}
+                  <option value="{{ service.id }}">{{ service.name }} - ${{ service.price }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 d-flex flex-column justify-content-center">
+            <button type="button" id="btn-add" class="btn btn-primary mb-2"> &gt;&gt; </button>
+            <button type="button" id="btn-remove" class="btn btn-primary"> &lt;&lt; </button>
+          </div>
+          <div class="col-md-5">
+            <label for="selectedServices">Assigned Services</label>
+            <select id="selectedServices" name="assigned_services" class="form-control" multiple size="10">
+              {% for service in doctor.assigned_services.all %}
+                <option value="{{ service.id }}" selected>{{ service.name }} - ${{ service.price }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability Dropdown -->
+      <div class="form-group col-md-6">
+        <label for="defaultAvailability">Availability</label>
+        <select id="defaultAvailability" name="default_availability" class="form-control">
+          <option value="available" {% if form.default_availability.value == "available" %}selected{% endif %}>Available</option>
+          <option value="unavailable" {% if form.default_availability.value == "unavailable" %}selected{% endif %}>Unavailable</option>
+          <option value="vacation" {% if form.default_availability.value == "vacation" %}selected{% endif %}>Vacation</option>
+        </select>
+      </div>
+
+      <!-- Submit and Cancel Buttons -->
+      <button type="submit" class="btn btn-primary">Update</button>
+      <a href="{% url 'list_doctor' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+    <!-- Display Form Errors -->
+    <ul>
+      {% for field, errors in form.errors.items %}
+        <li>
+          <strong>{{ field.label }}:</strong>
+          <ul>
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,17 @@
+<h2>Invoice List</h2>
+<table>
+    <tr>
+        <th>Patient</th>
+        <th>Total Amount</th>
+        <th>Invoice Date</th>
+        <th>Paid</th>
+    </tr>
+    {% for invoice in invoices %}
+    <tr>
+        <td>{{ invoice.patient }}</td>
+        <td>{{ invoice.total_amount }}</td>
+        <td>{{ invoice.invoice_date }}</td>
+        <td>{{ invoice.paid }}</td>
+    </tr>
+    {% endfor %}
+</table>
