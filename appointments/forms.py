@@ -50,6 +50,8 @@ class AppointmentForm(forms.ModelForm):
 
 # Add Service Form
 class AddServiceForm(forms.Form):
+    class Meta:
+        model = Service
     service = forms.ModelChoiceField(
         queryset=Service.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'}),

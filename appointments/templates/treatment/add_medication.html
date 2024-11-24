@@ -1,13 +1,10 @@
 {% extends 'main/base.html' %}
-{% load static %}
-
-
 {% block content %}
 <h2>Add Medication</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Add Medication</button>
+    <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
-

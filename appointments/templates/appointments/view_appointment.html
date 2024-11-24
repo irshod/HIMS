@@ -1,138 +1,166 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load static %}
 {% load permissions %}
 
-{% block title %}Appointment Details | HIMS{% endblock title %}
+{% block title %}
+  Appointment Details | HIMS
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+  <div class="container-fluid">
     <h3 class="widget-title">Appointment Details</h3>
 
     <!-- Appointment Information -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5>Basic Information</h5>
-        </div>
-        <div class="card-body">
-            <p><strong>Patient:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</p>
-            <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}</p>
-            <p><strong>Department:</strong> {{ appointment.department.name }}</p>
-            <p><strong>Appointment Date:</strong> {{ appointment.appointment_date|date:"Y-m-d H:i" }}</p>
-            <p><strong>Appointment Type:</strong> {{ appointment.get_appointment_type_display }}</p>
-            <p><strong>Status:</strong> {{ appointment.get_status_display }}</p>
-            <p><strong>Payment Status:</strong> {{ appointment.get_payment_status_display }}</p>
-        </div>
+      <div class="card-header">
+        <h5>Basic Information</h5>
+      </div>
+      <div class="card-body">
+        <p>
+          <strong>Patient:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
+        </p>
+        <p>
+          <strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}
+        </p>
+        <p>
+          <strong>Department:</strong> {{ appointment.department.name }}
+        </p>
+        <p>
+          <strong>Appointment Date:</strong> {{ appointment.appointment_date|date:'Y-m-d H:i' }}
+        </p>
+        <p>
+          <strong>Appointment Type:</strong> {{ appointment.get_appointment_type_display }}
+        </p>
+        <p>
+          <strong>Status:</strong> {{ appointment.get_status_display }}
+        </p>
+        <p>
+          <strong>Payment Status:</strong> {{ appointment.get_payment_status_display }}
+        </p>
+      </div>
     </div>
 
     <!-- Services and Cost Summary -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5>Services and Cost</h5>
-        </div>
-        <div class="card-body">
-            <ul>
-                {% for service in appointment.service_set.all %}
-                    <li>{{ service.name }} - ${{ service.price }}</li>
-                {% endfor %}
-            </ul>
-            <p><strong>Total Cost:</strong> ${{ appointment.total_cost }}</p>
-        </div>
+      <div class="card-header">
+        <h5>Services and Cost</h5>
+      </div>
+      <div class="card-body">
+        <ul>
+          {% for service in appointment.service_set.all %}
+            <li>{{ service.name }} - ${{ service.price }}</li>
+          {% endfor %}
+        </ul>
+        <p>
+          <strong>Total Cost:</strong> ${{ appointment.total_cost }}
+        </p>
+      </div>
     </div>
 
     <!-- Patient Medical History (Read-Only) -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5>Medical History</h5>
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Doctor</th>
-                        <th>Notes</th>
-                        <th>Medications</th>
-                        <th>Consumables</th>
-                        <th>Services</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for history in medical_history %}
-                    <tr>
-                        <td>{{ history.date|date:"Y-m-d H:i" }}</td>
-                        <td>{{ history.doctor }}</td>
-                        <td>{{ history.treatment_notes }}</td>
-                        <td>
-                            {% for medication in history.treatment_medications.all %}
-                            {{ medication.name }} ({{ medication.quantity }})<br>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            {% for consumable in history.treatment_consumables.all %}
-                            {{ consumable.name }} ({{ consumable.quantity }})<br>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            {% for service in history.services.all %}
-                            {{ service.name }}<br>
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center">No medical history available.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+      <div class="card-header">
+        <h5>Medical History</h5>
+        {% if request.user|has_permission:'add_treatment_notes' %}
+          <a href="{% url 'add_treatment_notes' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Treatment Notes</a>
+        {% endif %}
+        {% if request.user|has_permission:'add_medication_to_treatment' %}
+          <a href="{% url 'add_medication_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Medication</a>
+        {% endif %}
+        {% if request.user|has_permission:'add_consumable_to_treatment' %}
+          <a href="{% url 'add_consumable_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Consumable</a>
+        {% endif %}
+        {% if request.user|has_permission:'add_service_to_appointment' %}
+          <a href="{% url 'add_service_to_appointment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Order Service</a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Doctor</th>
+              <th>Notes</th>
+              <th>Medications</th>
+              <th>Consumables</th>
+              <th>Services</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for history in medical_history %}
+              <tr>
+                <td>{{ history.date|date:'Y-m-d H:i' }}</td>
+                <td>{{ history.doctor.get_full_name }}</td>
+                <td>{{ history.treatment_notes }}</td>
+                <td>
+                  {% for medication in history.treatment_medications.all %}
+                    {{ medication.medication.name }} ({{ medication.quantity }})<br />
+                  {% endfor %}
+                </td>
+                <td>
+                  {% for consumable in history.treatment_consumables.all %}
+                    {{ consumable.consumable.name }} ({{ consumable.quantity }})<br />
+                  {% endfor %}
+                </td>
+                <td>
+                  {% for service in history.appointment.services.all %}
+                    {{ service.name }}<br />
+                  {% endfor %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center">No medical history available.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Add Actions -->
     <div class="card mb-4">
-        <div class="card-header">
-            <h5>Actions</h5>
-        </div>
-        <div class="card-body">
-            <div class="btn-group" role="group">
-                <a href="{% url 'appointments_list' %}" class="btn btn-secondary">Back to Appointments List</a>
+      <div class="card-header">
+        <h5>Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="btn-group" role="group">
+          <a href="{% url 'appointments_list' %}" class="btn btn-secondary">Back to Appointments List</a>
 
-                {% if request.user|has_permission:"add_treatment_notes" %}
-                <a href="{% url 'add_treatment_notes' appointment.id %}" class="btn btn-primary">Add Treatment Notes</a>
-                {% endif %}
-                {% if request.user|has_permission:"add_medication_to_treatment" %}
-                <a href="{% url 'add_medication_to_treatment' appointment.id %}" class="btn btn-primary">Add Medication</a>
-                {% endif %}
-                {% if request.user|has_permission:"add_consumable_to_treatment" %}
-                <a href="{% url 'add_consumable_to_treatment' appointment.id %}" class="btn btn-primary">Add Consumable</a>
-                {% endif %}
-                {% if request.user|has_permission:"add_service_to_appointment" %}
-                <a href="{% url 'add_service_to_appointment' appointment.id %}" class="btn btn-primary">Order Service</a>
-                {% endif %}
-            </div>
+          {% if appointment.status == 'pending' %}
+            <a href="{% url 'start_appointment' appointment.id %}" class="btn btn-primary">Start Appointment</a>
+          {% elif appointment.status == 'in_progress' %}
+            <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success">Complete Appointment</a>
+            <a href="{% url 'mark_awaiting_test' appointment.id %}" class="btn btn-warning">Mark as Awaiting Test</a>
+          {% elif appointment.status == 'completed' %}
+            <span class="badge badge-success">Appointment Completed</span>
+          {% endif %}
         </div>
+      </div>
     </div>
 
     <!-- Payment Section -->
-    {% if appointment.payment_status == "unpaid" %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Payment</h5>
-            </div>
-            <div class="card-body">
-                <p>This appointment has not been paid yet.</p>
-                <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info">Generate Invoice</a>
-            </div>
+    {% if appointment.payment_status == 'unpaid' %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Payment</h5>
         </div>
+        <div class="card-body">
+          <p>This appointment has not been paid yet.</p>
+          <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info">Generate Invoice</a>
+        </div>
+      </div>
     {% else %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Payment</h5>
-            </div>
-            <div class="card-body">
-                <p><span class="text-success">This appointment has been paid.</span></p>
-            </div>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Payment</h5>
         </div>
+        <div class="card-body">
+          <p>
+            <span class="text-success">This appointment has been paid.</span>
+          </p>
+        </div>
+      </div>
     {% endif %}
-</div>
-{% endblock content %}
+  </div>
+{% endblock %}

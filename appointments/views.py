@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from main.templatetags.permissions import has_permission  
 from django.contrib import messages
-from .models import Appointment, Invoice, Payment
+from .models import Appointment, Invoice, Payment, TreatmentHistory
 from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm
 from datetime import datetime, timedelta
 from departments.models import Service, Department
@@ -192,10 +192,19 @@ def appointments_list(request):
 
 # View details of a specific appointment
 @login_required
-@user_passes_test(lambda u: has_permission(u, "view_appointment"))
+@user_passes_test(lambda u: u.has_perm("appointments.view_appointment"))
 def view_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    return render(request, 'appointments/view_appointment.html', {'appointment': appointment})
+    patient = appointment.patient
+
+    # Retrieve all treatment history for the patient
+    medical_history = TreatmentHistory.objects.filter(appointment__patient=patient).select_related('doctor', 'appointment').prefetch_related('medications', 'consumables')
+
+    return render(request, 'appointments/view_appointment.html', {
+        'appointment': appointment,
+        'medical_history': medical_history,
+    })
+
 
 # Update status to in-progress (doctor starts the appointment)
 @login_required
@@ -321,26 +330,30 @@ def add_treatment_notes(request, appointment_id):
 @user_passes_test(lambda u: u.has_perm('appointments.add_service'))
 def add_service_to_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
+    invoice, created = Invoice.objects.get_or_create(appointment=appointment)
+
     if request.method == 'POST':
         form = AddServiceForm(request.POST)
         if form.is_valid():
-            service = form.cleaned_data['service']
-            try:
-                appointment.services.add(service)
-                appointment.calculate_total_cost()
-                appointment.save()
+            # Use the save method of the form
+            service = form.save(commit=False) if hasattr(form, 'save') else None
+            if service:
+                service.appointment = appointment
+                service.save()
 
-                if hasattr(appointment, 'invoice'):
-                    appointment.invoice.total_amount = appointment.total_cost
-                    appointment.invoice.save(update_fields=['total_amount'])
+                # Update invoice total
+                invoice.total_amount += service.price
+                invoice.save()
 
-                messages.success(request, f"Service {service.name} added successfully.")
-            except Exception as e:
-                messages.error(request, str(e))
-            return redirect('generate_invoice', appointment_id=appointment.id)
+            messages.success(request, "Service added successfully.")
+            return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = AddServiceForm()
-    return render(request, 'appointments/add_service.html', {'form': form, 'appointment': appointment})
+
+    return render(request, 'treatment/add_service.html', {
+        'form': form,
+        'appointment': appointment,
+    })
 
 
 
@@ -349,18 +362,32 @@ def add_service_to_appointment(request, appointment_id):
 @user_passes_test(lambda u: u.has_perm("appointments.add_medication"))
 def add_medication_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    # Ensure the appointment has an associated invoice
+    invoice, created = Invoice.objects.get_or_create(appointment=appointment)
+
     if request.method == 'POST':
         form = AddMedicationForm(request.POST)
         if form.is_valid():
-            medication = form.cleaned_data['medication']
-            quantity = form.cleaned_data['quantity']
-            treatment_history = appointment.treatment_history.first()  # Assuming one treatment history per appointment
-            treatment_history.add_medication(medication, quantity)
-            messages.success(request, f"Medication {medication.name} added successfully.")
+            medication = form.save(commit=False)
+            medication.appointment = appointment
+            medication.save()
+
+            # Update invoice total if medication has a price
+            if invoice:
+                invoice.total_amount += medication.price * medication.quantity
+                invoice.save()
+
+            messages.success(request, "Medication added successfully.")
             return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = AddMedicationForm()
-    return render(request, 'appointments/add_medication.html', {'form': form, 'appointment': appointment})
+
+    return render(request, 'treatment/add_medication.html', {
+        'form': form,
+        'appointment': appointment,
+    })
+
 
 
 # Add Consumable to Treatment
@@ -368,15 +395,28 @@ def add_medication_to_treatment(request, appointment_id):
 @user_passes_test(lambda u: u.has_perm("appointments.add_consumable"))
 def add_consumable_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    # Ensure the appointment has an associated invoice
+    invoice, created = Invoice.objects.get_or_create(appointment=appointment)
+
     if request.method == 'POST':
         form = AddConsumableForm(request.POST)
         if form.is_valid():
-            consumable = form.cleaned_data['consumable']
-            quantity = form.cleaned_data['quantity']
-            treatment_history = appointment.treatment_history.first()
-            treatment_history.add_consumable(consumable, quantity)
-            messages.success(request, f"Consumable {consumable.name} added successfully.")
+            consumable = form.save(commit=False)
+            consumable.appointment = appointment
+            consumable.save()
+
+            # Update invoice total if consumable has a price
+            if invoice:
+                invoice.total_amount += consumable.price * consumable.quantity
+                invoice.save()
+
+            messages.success(request, "Consumable added successfully.")
             return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = AddConsumableForm()
-    return render(request, 'appointments/add_consumable.html', {'form': form, 'appointment': appointment})
+
+    return render(request, 'treatment/add_consumable.html', {
+        'form': form,
+        'appointment': appointment,
+    })
