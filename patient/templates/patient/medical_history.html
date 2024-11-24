@@ -1,0 +1,31 @@
+{% extends "main/base.html" %}
+{% block title %}Medical History{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Medical History for {{ patient.first_name }} {{ patient.last_name }}</h3>
+    {% if medical_history %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Condition</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for history in medical_history %}
+            <tr>
+                <td>{{ history.diagnosis_date|date:"Y-m-d" }}</td>
+                <td>{{ history.condition }}</td>
+                <td>{{ history.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No medical history records found.</p>
+    {% endif %}
+    <a href="{% url 'patient_profile' patient.id %}" class="btn btn-secondary">Back to Profile</a>
+</div>
+{% endblock content %}

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from main.templatetags.permissions import has_permission  
 from django.contrib import messages
 from .models import Appointment, Invoice
-from .forms import AppointmentForm
+from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm
 from datetime import datetime, timedelta
 from departments.models import Service, Department
 from django.http import JsonResponse
@@ -269,3 +269,62 @@ def process_payment(request, appointment_id):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
+
+
+
+
+@login_required
+@user_passes_test(lambda u: u.has_perm('appointments.add_service'))
+def add_service_to_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        form = AddServiceForm(request.POST)
+        if form.is_valid():
+            service = form.cleaned_data['service']
+            try:
+                appointment.add_service(service.id)
+                messages.success(request, f"Service {service.name} added successfully.")
+            except Exception as e:
+                messages.error(request, str(e))
+            return redirect('view_appointment', appointment_id=appointment.id)
+    else:
+        form = AddServiceForm()
+    return render(request, 'appointments/add_service.html', {'form': form, 'appointment': appointment})
+
+@login_required
+@user_passes_test(lambda u: u.has_perm('appointments.add_medication'))
+def add_medication_to_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        form = AddMedicationForm(request.POST)
+        if form.is_valid():
+            medication = form.cleaned_data['medication']
+            quantity = form.cleaned_data['quantity']
+            try:
+                appointment.add_medication(medication.id, quantity)
+                messages.success(request, f"Medication {medication.name} added successfully.")
+            except Exception as e:
+                messages.error(request, str(e))
+            return redirect('view_appointment', appointment_id=appointment.id)
+    else:
+        form = AddMedicationForm()
+    return render(request, 'appointments/add_medication.html', {'form': form, 'appointment': appointment})
+
+@login_required
+@user_passes_test(lambda u: u.has_perm('appointments.add_consumable'))
+def add_consumable_to_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        form = AddConsumableForm(request.POST)
+        if form.is_valid():
+            consumable = form.cleaned_data['consumable']
+            quantity = form.cleaned_data['quantity']
+            try:
+                appointment.add_consumable(consumable.id, quantity)
+                messages.success(request, f"Consumable {consumable.name} added successfully.")
+            except Exception as e:
+                messages.error(request, str(e))
+            return redirect('view_appointment', appointment_id=appointment.id)
+    else:
+        form = AddConsumableForm()
+    return render(request, 'appointments/add_consumable.html', {'form': form, 'appointment': appointment})

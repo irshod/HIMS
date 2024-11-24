@@ -17,4 +17,9 @@ urlpatterns = [
     path('appointments/<int:appointment_id>/generate_invoice/', views.generate_invoice, name='generate_invoice'),
     path('appointments/<int:appointment_id>/generate_pdf/', views.generate_pdf_invoice, name='generate_pdf_invoice'),
     path('appointments/<int:appointment_id>/process_payment/', process_payment, name='process_payment'),
+
+    #Treatment
+    path('<int:appointment_id>/add-service/', views.add_service_to_appointment, name='add_service_to_appointment'),
+    path('<int:appointment_id>/add-medication/', views.add_medication_to_appointment, name='add_medication_to_appointment'),
+    path('<int:appointment_id>/add-consumable/', views.add_consumable_to_appointment, name='add_consumable_to_appointment'),
 ]

@@ -28,7 +28,6 @@
                 <th>Last Name</th>
                 <th>Contact Number</th>
                 <th>Date of Birth</th>
-                <th>Patient Type</th> <!-- Add this column -->
                 <th>Actions</th>
             </tr>
         </thead>
@@ -39,7 +38,6 @@
                 <td>{{ patient.last_name }}</td>
                 <td>{{ patient.contact_number }}</td>
                 <td>{{ patient.date_of_birth|date:"Y-m-d" }}</td>
-                <td>{{ patient.get_patient_type_display }}</td> <!-- Display patient type -->
                 <td>
                     <a href="{% url 'patient_profile' patient.id %}" class="btn btn-info btn-sm">View Profile</a>
                     {% if request.user|has_permission:"edit_patient" %}
@@ -49,12 +47,12 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center">No patients found.</td>
+                <td colspan="5" class="text-center">No patients found.</td>
             </tr>
             {% endfor %}
         </tbody>
-        
     </table>
+    
 
     <!-- Pagination -->
     <nav>

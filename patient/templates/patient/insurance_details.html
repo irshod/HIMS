@@ -1,0 +1,33 @@
+{% extends "main/base.html" %}
+{% block title %}Insurance Details{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Insurance Details for {{ patient.first_name }} {{ patient.last_name }}</h3>
+    {% if insurance_details %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Policy Number</th>
+                <th>Coverage Start</th>
+                <th>Coverage End</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for insurance in insurance_details %}
+            <tr>
+                <td>{{ insurance.provider_name }}</td>
+                <td>{{ insurance.policy_number }}</td>
+                <td>{{ insurance.coverage_start_date|date:"Y-m-d" }}</td>
+                <td>{{ insurance.coverage_end_date|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No insurance details found.</p>
+    {% endif %}
+    <a href="{% url 'patient_profile' patient.id %}" class="btn btn-secondary">Back to Profile</a>
+</div>
+{% endblock content %}

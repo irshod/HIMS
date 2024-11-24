@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from departments.models import Department, Service
 from .models import Appointment
+from inventory.models import Medication, Consumable
 
 User = get_user_model()
 
@@ -41,3 +42,13 @@ class AppointmentForm(forms.ModelForm):
             self.fields['services'].queryset = department.services.all()
 
 
+class AddServiceForm(forms.Form):
+    service = forms.ModelChoiceField(queryset=Service.objects.all())
+    
+class AddMedicationForm(forms.Form):
+    medication = forms.ModelChoiceField(queryset=Medication.objects.all())
+    quantity = forms.IntegerField(min_value=1)
+    
+class AddConsumableForm(forms.Form):
+    consumable = forms.ModelChoiceField(queryset=Consumable.objects.all())
+    quantity = forms.IntegerField(min_value=1)
