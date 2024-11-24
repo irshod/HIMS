@@ -1,5 +1,7 @@
 {% extends "main/base.html" %}
 {% block title %}Generate Invoice{% endblock title %}
+{% csrf_token %}
+<meta name="csrfmiddlewaretoken" content="{{ csrf_token }}">
 
 {% block content %}
 <div class="container">
@@ -13,9 +15,31 @@
         {% endfor %}
     </ul>
     <p><strong>Total Amount:</strong> $<span id="total-amount">{{ invoice.total_amount }}</span></p>
-    <p><strong>Status:</strong> <span id="payment-status">{{ invoice.status|default:"Unpaid" }}</span></p>
-
-    <button id="pay-button" class="btn btn-primary">Mark as Paid</button>
+    
+    <form id="payment-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="payment-amount">Enter Payment Amount:</label>
+            <input
+                type="number"
+                id="payment-amount"
+                class="form-control"
+                placeholder="Enter payment amount"
+                step="0.01"
+                min="0"
+                required
+            />
+        </div>
+        <button id="pay-button" type="submit" class="btn btn-primary mt-2">Mark as Paid</button>
+    </form>
+    
+    <p class="text-danger" id="payment-error" style="display: none;"></p>
+    
+    <p class="text-danger" id="payment-error" style="display: none;"></p>
+    <p><strong>Total Paid:</strong> $<span id="total-paid">{{ invoice.total_paid }}</span></p>
+    <p><strong>Outstanding Balance:</strong> $<span id="outstanding-balance">{{ invoice.outstanding_balance }}</span></p>
+    <p><strong>Status:</strong> <span id="payment-status">{{ invoice.status }}</span></p>
+    
 
     <!-- Return to Appointment List Button -->
     <a href="{% url 'appointments_list' %}" class="btn btn-secondary mt-3">Return to Appointment List</a>
@@ -26,5 +50,6 @@
 <script>
     const processPaymentURL = "{% url 'process_payment' appointment.id %}";
 </script>
+
 
 {% endblock content %}

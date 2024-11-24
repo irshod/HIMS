@@ -181,37 +181,70 @@
 
     // Handle Payment
     document.addEventListener('DOMContentLoaded', function () {
+        const csrfTokenMeta = document.querySelector('meta[name="csrfmiddlewaretoken"]');
+        const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+    
+        if (!csrfToken) {
+            console.error("CSRF token meta tag is missing.");
+        }
+    
         const payButton = document.getElementById('pay-button');
+        const paymentAmountInput = document.getElementById('payment-amount');
+        const paymentError = document.getElementById('payment-error');
         const paymentStatus = document.getElementById('payment-status');
-
+        const totalPaid = document.getElementById('total-paid');
+        const outstandingBalance = document.getElementById('outstanding-balance');
+    
         if (payButton) {
-            payButton.addEventListener('click', function () {
+            payButton.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent form submission
+                const paymentAmount = parseFloat(paymentAmountInput.value);
+    
+                if (isNaN(paymentAmount) || paymentAmount <= 0) {
+                    paymentError.style.display = 'block';
+                    paymentError.innerText = 'Please enter a valid payment amount.';
+                    return;
+                }
+    
                 fetch(processPaymentURL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name="csrfmiddlewaretoken"]').getAttribute('content'),
+                        'X-CSRFToken': csrfToken, // Ensure CSRF token is included
                     },
-                    body: JSON.stringify({}) // Simplified since no payment amount is entered manually
+                    body: JSON.stringify({ amount: paymentAmount }),
                 })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
+                            return response.json().then(data => {
+                                throw new Error(data.error || `HTTP error! Status: ${response.status}`);
+                            });
                         }
                         return response.json();
                     })
                     .then(data => {
                         if (data.success) {
-                            paymentStatus.innerText = 'Paid';
-                            alert('Payment marked as successful!');
+                            paymentError.style.display = 'none';
+                            totalPaid.innerText = data.total_paid.toFixed(2);
+                            outstandingBalance.innerText = data.outstanding_balance.toFixed(2);
+                            paymentStatus.innerText = data.status;
+                            alert('Payment processed successfully.');
                         } else {
-                            alert(`Error: ${data.error}`);
+                            paymentError.style.display = 'block';
+                            paymentError.innerText = data.error || 'An error occurred.';
                         }
                     })
-                    .catch(error => console.error('Error processing payment:', error));
+                    .catch(error => {
+                        console.error('Error processing payment:', error);
+                        alert(`Error: ${error.message}`);
+                    });
+                
             });
         }
     });
+    
+    
+    
 
     function printInvoice() {
         const pdfUrl = generatePdfInvoiceURL; // Dynamically passed from the template

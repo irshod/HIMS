@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from main.templatetags.permissions import has_permission  
 from django.contrib import messages
-from .models import Appointment, Invoice
-from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm
+from .models import Appointment, Invoice, Payment
+from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm, InvoiceForm, PaymentForm
 from datetime import datetime, timedelta
 from departments.models import Service, Department
 from django.http import JsonResponse
@@ -12,6 +12,7 @@ from main.models import CustomUser
 from departments.utils import get_doctors_by_department, get_services_by_department
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
+from decimal import Decimal, InvalidOperation
 
 
 # Create Appointment
@@ -23,18 +24,10 @@ def create_appointment(request):
     if request.method == "POST":
         form = AppointmentForm(request.POST)
         if form.is_valid():
-            # Save the appointment instance first
-            appointment = form.save(commit=False)
-            appointment.save()
-
-            # Now set the many-to-many relationship
+            appointment = form.save(commit=False)  # Save without committing for initial processing
+            appointment.save()  # Save to assign an ID
             services_selected = form.cleaned_data.get('services', [])
-            appointment.services.set(services_selected)
-
-            # Calculate and save total cost
-            appointment.total_cost = sum(service.price for service in services_selected)
-            appointment.save(update_fields=["total_cost"])
-
+            appointment.services.set(services_selected)  # Now safe to set many-to-many relationships
             messages.success(request, "Appointment created successfully.")
             return redirect('appointments_list')
     else:
@@ -55,6 +48,7 @@ def create_appointment(request):
     })
 
 
+
 def get_doctors_and_services(request):
     department_id = request.GET.get('department_id')
     doctors = []
@@ -73,35 +67,75 @@ def get_doctors_and_services(request):
     return JsonResponse({'doctors': doctors, 'services': services})
 
 
-# Generate Bills
+# Generate Invoice
 @login_required
-@user_passes_test(lambda u: has_permission(u, "generate_invoice"))
+@user_passes_test(lambda u: u.has_perm("appointments.generate_invoice"))
 def generate_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
+    # Recalculate total cost of services dynamically
+    appointment.calculate_total_cost()
+    appointment.save()
 
-    # Create or retrieve the invoice
     invoice, created = Invoice.objects.get_or_create(
         appointment=appointment,
-        defaults={"total_amount": appointment.total_cost, "status": "unpaid"},
+        defaults={'total_amount': appointment.total_cost}
     )
-
-    if request.method == "POST":
-        # Update invoice status
-        invoice.status = "paid"
-        invoice.save()
-
-        # Update appointment status
-        appointment.payment_status = "paid"
-        appointment.save(update_fields=["payment_status"])
-
-        messages.success(request, f"Payment for Appointment #{appointment.id} has been marked as paid.")
-        return redirect("appointments_list")
+    if not created:
+        invoice.total_amount = appointment.total_cost
+        invoice.save(update_fields=["total_amount"])
 
     return render(request, 'appointments/generate_invoice.html', {
         'appointment': appointment,
         'invoice': invoice,
     })
 
+
+
+# Process Payment
+@login_required
+@user_passes_test(lambda u: u.has_perm("appointments.add_payment"))
+def process_payment(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            payment_amount = body.get('amount', 0)
+
+            # Ensure the payment amount is valid
+            try:
+                payment_amount = Decimal(payment_amount)
+            except (InvalidOperation, ValueError):
+                return JsonResponse({'success': False, 'error': 'Invalid payment amount format.'}, status=400)
+
+            if payment_amount <= 0:
+                return JsonResponse({'success': False, 'error': 'Payment amount must be greater than zero.'}, status=400)
+
+            if payment_amount > invoice.outstanding_balance():
+                return JsonResponse({'success': False, 'error': 'Payment amount exceeds outstanding balance.'}, status=400)
+
+            # Create payment
+            Payment.objects.create(
+                invoice=invoice,
+                amount=payment_amount,
+                payment_method='cash',  # Replace with actual payment method if needed
+            )
+
+            # Update invoice and return updated data
+            total_paid = invoice.total_paid()
+            outstanding_balance = invoice.outstanding_balance()
+
+            return JsonResponse({
+                'success': True,
+                'total_paid': float(total_paid),
+                'outstanding_balance': float(outstanding_balance),
+                'status': invoice.status,
+            })
+
+        except Exception as e:
+            print(f"Error processing payment: {e}")
+            return JsonResponse({'success': False, 'error': 'Internal server error.'}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
 
 # PDF Invoice
@@ -248,31 +282,29 @@ def appointment_events(request):
     return JsonResponse(events, safe=False)
 
 
+
+
+# Treatment Notes
 @login_required
-def process_payment(request, appointment_id):
+@user_passes_test(lambda u: u.has_perm("appointments.add_treatment_notes"))
+def add_treatment_notes(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
     if request.method == 'POST':
-        appointment = get_object_or_404(Appointment, id=appointment_id)
-
-        # Ensure the invoice exists
-        invoice, created = Invoice.objects.get_or_create(
-            appointment=appointment,
-            defaults={"total_amount": appointment.total_cost, "status": "unpaid"}
-        )
-
-        # Mark the invoice and appointment as paid
-        invoice.status = 'paid'
-        invoice.save()
-        appointment.payment_status = 'paid'
-        appointment.save(update_fields=['payment_status'])
-
-        return JsonResponse({'success': True})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
+        form = TreatmentHistoryForm(request.POST)
+        if form.is_valid():
+            treatment_history = form.save(commit=False)
+            treatment_history.appointment = appointment
+            treatment_history.doctor = request.user
+            treatment_history.save()
+            messages.success(request, "Treatment notes added successfully.")
+            return redirect('view_appointment', appointment_id=appointment_id)
+    else:
+        form = TreatmentHistoryForm()
+    return render(request, 'appointments/add_treatment_notes.html', {'form': form, 'appointment': appointment})
 
 
 
-
-
+# Add service after consultation or when needed
 @login_required
 @user_passes_test(lambda u: u.has_perm('appointments.add_service'))
 def add_service_to_appointment(request, appointment_id):
@@ -282,49 +314,57 @@ def add_service_to_appointment(request, appointment_id):
         if form.is_valid():
             service = form.cleaned_data['service']
             try:
-                appointment.add_service(service.id)
+                appointment.services.add(service)
+                appointment.calculate_total_cost()
+                appointment.save()
+
+                if hasattr(appointment, 'invoice'):
+                    appointment.invoice.total_amount = appointment.total_cost
+                    appointment.invoice.save(update_fields=['total_amount'])
+
                 messages.success(request, f"Service {service.name} added successfully.")
             except Exception as e:
                 messages.error(request, str(e))
-            return redirect('view_appointment', appointment_id=appointment.id)
+            return redirect('generate_invoice', appointment_id=appointment.id)
     else:
         form = AddServiceForm()
     return render(request, 'appointments/add_service.html', {'form': form, 'appointment': appointment})
 
+
+
+# Add Medication to Treatment
 @login_required
-@user_passes_test(lambda u: u.has_perm('appointments.add_medication'))
-def add_medication_to_appointment(request, appointment_id):
+@user_passes_test(lambda u: u.has_perm("appointments.add_medication"))
+def add_medication_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     if request.method == 'POST':
         form = AddMedicationForm(request.POST)
         if form.is_valid():
             medication = form.cleaned_data['medication']
             quantity = form.cleaned_data['quantity']
-            try:
-                appointment.add_medication(medication.id, quantity)
-                messages.success(request, f"Medication {medication.name} added successfully.")
-            except Exception as e:
-                messages.error(request, str(e))
-            return redirect('view_appointment', appointment_id=appointment.id)
+            treatment_history = appointment.treatment_history.first()  # Assuming one treatment history per appointment
+            treatment_history.add_medication(medication, quantity)
+            messages.success(request, f"Medication {medication.name} added successfully.")
+            return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = AddMedicationForm()
     return render(request, 'appointments/add_medication.html', {'form': form, 'appointment': appointment})
 
+
+# Add Consumable to Treatment
 @login_required
-@user_passes_test(lambda u: u.has_perm('appointments.add_consumable'))
-def add_consumable_to_appointment(request, appointment_id):
+@user_passes_test(lambda u: u.has_perm("appointments.add_consumable"))
+def add_consumable_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     if request.method == 'POST':
         form = AddConsumableForm(request.POST)
         if form.is_valid():
             consumable = form.cleaned_data['consumable']
             quantity = form.cleaned_data['quantity']
-            try:
-                appointment.add_consumable(consumable.id, quantity)
-                messages.success(request, f"Consumable {consumable.name} added successfully.")
-            except Exception as e:
-                messages.error(request, str(e))
-            return redirect('view_appointment', appointment_id=appointment.id)
+            treatment_history = appointment.treatment_history.first()
+            treatment_history.add_consumable(consumable, quantity)
+            messages.success(request, f"Consumable {consumable.name} added successfully.")
+            return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = AddConsumableForm()
     return render(request, 'appointments/add_consumable.html', {'form': form, 'appointment': appointment})
