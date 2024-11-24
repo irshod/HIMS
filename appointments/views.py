@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from main.templatetags.permissions import has_permission  
 from django.contrib import messages
 from .models import Appointment, Invoice, Payment
-from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm, InvoiceForm, PaymentForm
+from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm
 from datetime import datetime, timedelta
 from departments.models import Service, Department
 from django.http import JsonResponse
@@ -84,10 +84,16 @@ def generate_invoice(request, appointment_id):
         invoice.total_amount = appointment.total_cost
         invoice.save(update_fields=["total_amount"])
 
+    # Update payment status
+    if invoice.outstanding_balance() == 0:
+        appointment.payment_status = "paid"
+        appointment.save(update_fields=["payment_status"])
+
     return render(request, 'appointments/generate_invoice.html', {
         'appointment': appointment,
         'invoice': invoice,
     })
+
 
 
 
@@ -120,7 +126,12 @@ def process_payment(request, invoice_id):
                 payment_method='cash',  # Replace with actual payment method if needed
             )
 
-            # Update invoice and return updated data
+            # Update appointment payment status
+            if invoice.outstanding_balance() == 0:
+                invoice.appointment.payment_status = "paid"
+                invoice.appointment.save(update_fields=["payment_status"])
+
+            # Return updated data
             total_paid = invoice.total_paid()
             outstanding_balance = invoice.outstanding_balance()
 
@@ -136,6 +147,7 @@ def process_payment(request, invoice_id):
             return JsonResponse({'success': False, 'error': 'Internal server error.'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
+
 
 
 # PDF Invoice
@@ -300,7 +312,7 @@ def add_treatment_notes(request, appointment_id):
             return redirect('view_appointment', appointment_id=appointment_id)
     else:
         form = TreatmentHistoryForm()
-    return render(request, 'appointments/add_treatment_notes.html', {'form': form, 'appointment': appointment})
+    return render(request, 'treatment/add_treatment_notes.html', {'form': form, 'appointment': appointment})
 
 
 

@@ -30,7 +30,7 @@
         </thead>
         <tbody>
             {% for appointment in appointments %}
-                <tr>
+                <tr id="appointment-row-{{ appointment.id }}">
                     <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
                     <td>Dr. {{ appointment.doctor.get_full_name }}</td>
                     <td>{{ appointment.department.name }}</td>
@@ -44,9 +44,8 @@
                     <td>{{ appointment.appointment_date|date:"Y-m-d H:i" }}</td>
                     <td>{{ appointment.get_appointment_type_display }}</td>
                     <td>{{ appointment.get_status_display }}</td>
-                    <td>
+                    <td id="appointment-row-{{ appointment.id }}">
                         {% if appointment.invoice %}
-                            <!-- If invoice exists -->
                             {% if appointment.payment_status == "paid" %}
                                 <a href="{% url 'generate_pdf_invoice' appointment.id %}" target="_blank" class="btn btn-secondary btn-sm">PDF</a>
                                 <span class="badge badge-success">Paid</span>
@@ -55,7 +54,6 @@
                                 <span class="badge badge-warning">Unpaid</span>
                             {% endif %}
                         {% else %}
-                            <!-- If no invoice exists, show the "Generate Bill" button -->
                             <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-info btn-sm">Generate Bill</a>
                         {% endif %}
                     </td>
