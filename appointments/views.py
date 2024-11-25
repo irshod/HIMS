@@ -3,17 +3,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from main.templatetags.permissions import has_permission  
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .models import Appointment, Invoice, Payment, TreatmentHistory
 from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm
+from patient.forms import DiagnosisForm, Diagnosis
 from datetime import datetime, timedelta
 from departments.models import Service, Department
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from main.models import CustomUser 
 from departments.utils import get_doctors_by_department, get_services_by_department
-from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from decimal import Decimal, InvalidOperation
-
+from collections import defaultdict
+from django.utils.timezone import localdate
 
 # Create Appointment
 @login_required
@@ -126,10 +128,13 @@ def process_payment(request, invoice_id):
                 payment_method='cash',  # Replace with actual payment method if needed
             )
 
-            # Update appointment payment status
+            # Update invoice status and appointment payment status
             if invoice.outstanding_balance() == 0:
                 invoice.appointment.payment_status = "paid"
-                invoice.appointment.save(update_fields=["payment_status"])
+            else:
+                invoice.appointment.payment_status = "unpaid"
+
+            invoice.appointment.save(update_fields=["payment_status"])
 
             # Return updated data
             total_paid = invoice.total_paid()
@@ -143,10 +148,12 @@ def process_payment(request, invoice_id):
             })
 
         except Exception as e:
+            # Improved logging for debugging
             print(f"Error processing payment: {e}")
             return JsonResponse({'success': False, 'error': 'Internal server error.'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
+
 
 
 
@@ -186,24 +193,50 @@ def generate_pdf_invoice(request, appointment_id):
 @login_required
 @user_passes_test(lambda u: has_permission(u, "view_appointment"))
 def appointments_list(request):
-    appointments = Appointment.objects.all()
-    return render(request, 'appointments/appointment_list.html', {'appointments': appointments})
+    appointments = Appointment.objects.all().order_by('-appointment_date')  
+    paginator = Paginator(appointments, 10) 
+    page_number = request.GET.get('page') 
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'appointments/appointment_list.html', {'page_obj': page_obj})
 
 
-# View details of a specific appointment
 @login_required
-@user_passes_test(lambda u: u.has_perm("appointments.view_appointment"))
 def view_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    patient = appointment.patient
 
-    # Retrieve all treatment history for the patient
-    medical_history = TreatmentHistory.objects.filter(appointment__patient=patient).select_related('doctor', 'appointment').prefetch_related('medications', 'consumables')
+    # Group history by date
+    history_by_date = defaultdict(lambda: {
+        "diagnosis": [],
+        "services": [],
+        "medications": [],
+        "consumables": [],
+        "notes": None,
+    })
+
+    # Fetch and group diagnoses (no doctor field in Diagnosis)
+    for diagnosis in Diagnosis.objects.filter(appointment=appointment):
+        date = localdate(diagnosis.date)
+        history_by_date[date]["diagnosis"].append(diagnosis)
+
+    # Fetch and group treatment history (includes doctor field)
+    for treatment in TreatmentHistory.objects.filter(appointment=appointment).select_related('doctor'):
+        date = localdate(treatment.date)
+        history_by_date[date]["notes"] = treatment.treatment_notes
+        history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
+        history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
+        history_by_date[date]["doctor"] = treatment.doctor  # Track doctor for treatments
+
+    # Fetch and group services/tests
+    for service in appointment.services.all():
+        date = localdate(appointment.appointment_date)
+        history_by_date[date]["services"].append(service)
 
     return render(request, 'appointments/view_appointment.html', {
         'appointment': appointment,
-        'medical_history': medical_history,
+        'history_by_date': dict(history_by_date),  # Pass as a dictionary for template rendering
     })
+
 
 
 # Update status to in-progress (doctor starts the appointment)
@@ -323,6 +356,25 @@ def add_treatment_notes(request, appointment_id):
         form = TreatmentHistoryForm()
     return render(request, 'treatment/add_treatment_notes.html', {'form': form, 'appointment': appointment})
 
+@login_required
+@user_passes_test(lambda u: u.has_perm("appointments.add_diagnosis"))
+def add_diagnosis(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        form = DiagnosisForm(request.POST)
+        if form.is_valid():
+            diagnosis = form.save(commit=False)
+            diagnosis.appointment = appointment
+            diagnosis.save()
+            messages.success(request, "Diagnosis added successfully.")
+            return redirect('view_appointment', appointment_id=appointment_id)
+    else:
+        form = DiagnosisForm()
+
+    return render(request, 'treatment/add_diagnosis.html', {
+        'form': form,
+        'appointment': appointment,
+    })
 
 
 # Add service after consultation or when needed
@@ -362,21 +414,29 @@ def add_service_to_appointment(request, appointment_id):
 @user_passes_test(lambda u: u.has_perm("appointments.add_medication"))
 def add_medication_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-
-    # Ensure the appointment has an associated invoice
     invoice, created = Invoice.objects.get_or_create(appointment=appointment)
 
     if request.method == 'POST':
         form = AddMedicationForm(request.POST)
         if form.is_valid():
-            medication = form.save(commit=False)
-            medication.appointment = appointment
-            medication.save()
+            medication_data = form.save(appointment)
 
-            # Update invoice total if medication has a price
-            if invoice:
-                invoice.total_amount += medication.price * medication.quantity
-                invoice.save()
+            # Update invoice total
+            total_cost = medication_data['price'] * medication_data['quantity']
+            invoice.total_amount += total_cost
+            invoice.save()
+
+            # Update appointment total cost
+            appointment.total_cost += total_cost
+            appointment.payment_status = 'unpaid'  # Mark as unpaid if the cost increases
+            appointment.save()
+            
+            # Update payment status
+            if invoice.outstanding_balance() == 0:
+                appointment.payment_status = "paid"
+            else:
+                appointment.payment_status = "unpaid"
+            appointment.save()
 
             messages.success(request, "Medication added successfully.")
             return redirect('view_appointment', appointment_id=appointment_id)
@@ -387,6 +447,34 @@ def add_medication_to_treatment(request, appointment_id):
         'form': form,
         'appointment': appointment,
     })
+
+
+from django.http import JsonResponse
+from .models import Appointment
+
+@login_required
+def update_total_cost(request, appointment_id):
+    if request.method == "POST":
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            data = json.loads(request.body)
+            additional_cost = data.get("additional_cost", 0)
+
+            if additional_cost:
+                appointment.total_cost += Decimal(additional_cost)
+                appointment.save(update_fields=["total_cost"])
+
+            return JsonResponse({"success": True, "total_cost": float(appointment.total_cost)})
+
+        except Appointment.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Appointment not found."}, status=404)
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+    return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
+
+
 
 
 
@@ -420,3 +508,81 @@ def add_consumable_to_treatment(request, appointment_id):
         'form': form,
         'appointment': appointment,
     })
+
+
+
+def generate_medical_report(request, appointment_id):
+    # Fetch appointment
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    # Build history_by_date
+    history_by_date = defaultdict(lambda: {
+        "diagnosis": [],
+        "services": [],
+        "medications": [],
+        "consumables": [],
+        "doctor": None,
+        "notes": None,
+    })
+
+    for diagnosis in appointment.diagnoses.all():
+        date = localdate(diagnosis.date)
+        history_by_date[date]["diagnosis"].append(diagnosis)
+
+    # Fetch and group treatment history
+    for treatment in TreatmentHistory.objects.filter(appointment=appointment):
+        date = localdate(treatment.date)
+        history_by_date[date]["doctor"] = treatment.doctor
+        history_by_date[date]["notes"] = treatment.treatment_notes
+        history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
+        history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
+
+    for diagnosis in Diagnosis.objects.filter(appointment=appointment):
+        history_by_date[localdate(diagnosis.date)]["diagnosis"].append({
+            "doctor": diagnosis.doctor,
+            "notes": diagnosis.notes,
+            # Add other fields as needed
+        })
+
+
+    # Populate services/tests
+    for service in appointment.services.all():
+        history_by_date[localdate(appointment.appointment_date)]["services"].append(service)
+
+    # Generate PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="medical_report_{appointment_id}.pdf"'
+
+    p = canvas.Canvas(response)
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(100, 800, "Medical Report")
+    p.setFont("Helvetica", 12)
+    p.drawString(100, 780, f"Patient: {appointment.patient.first_name} {appointment.patient.last_name}")
+    p.drawString(100, 760, f"Doctor: {appointment.doctor.get_full_name()}")
+    y = 740
+
+    for date, details in history_by_date.items():
+        p.drawString(100, y, f"Date: {date}")
+        y -= 20
+        p.drawString(120, y, f"Diagnosis: {', '.join([d.treatment_notes for d in details['diagnosis']])}")
+        y -= 20
+        p.drawString(120, y, f"Notes: {details['notes']}")
+        y -= 20
+        for medication in details["medications"]:
+            p.drawString(140, y, f"Medication: {medication.medication.name} (Qty: {medication.quantity})")
+            y -= 15
+        for consumable in details["consumables"]:
+            p.drawString(140, y, f"Consumable: {consumable.consumable.name} (Qty: {consumable.quantity})")
+            y -= 15
+        for service in details["services"]:
+            p.drawString(140, y, f"Test: {service.name}")
+            y -= 15
+        y -= 30
+
+        if y < 50:  # Create a new page if the content exceeds the page
+            p.showPage()
+            y = 740
+
+    p.showPage()
+    p.save()
+    return response

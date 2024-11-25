@@ -7,11 +7,13 @@ urlpatterns = [
     path('medications/add/', views.medication_add, name='medication_add'),
     path('medications/<int:pk>/edit/', views.medication_edit, name='medication_update'),
     path('medications/<int:pk>/delete/', views.medication_delete, name='medication_delete'),
-   
+    path('medicine-details/<int:medicine_id>/', views.medicine_details, name='medicine_details'),
 
     # Consumable URLs
     path('consumables/', views.consumable_list, name='consumable_list'),
     path('consumables/add/', views.consumable_add, name='consumable_add'),
     path('consumables/<int:pk>/edit/', views.consumable_edit, name='consumable_update'),
     path('consumables/<int:pk>/delete/', views.consumable_delete, name='consumable_delete'),
+
+
 ]

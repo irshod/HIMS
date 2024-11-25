@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from appointments.models import Appointment
 
 class Patient(models.Model):
     
@@ -41,6 +41,14 @@ class Prescription(models.Model):
 
     def __str__(self):
         return f"Prescription for {self.patient.first_name} by Dr. {self.doctor.get_full_name()} on {self.created_at}"
+
+class Diagnosis(models.Model):
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="diagnoses")
+    treatment_notes = models.TextField(help_text="Notes on treatment and procedures performed")
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Diagnosis for {self.appointment.patient.first_name} on {self.date}"
 
 
 class PatientMedicalHistory(models.Model):

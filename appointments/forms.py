@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from departments.models import Department, Service
 from inventory.models import Medication, Consumable
-from .models import Appointment, Invoice, Payment, TreatmentHistory
+from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication
 
 User = get_user_model()
 
@@ -60,21 +60,41 @@ class AddServiceForm(forms.Form):
 
 
 # Add Medication Form
+
 class AddMedicationForm(forms.Form):
-    medication = forms.ModelChoiceField(
-        queryset=Medication.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label="Select Medication"
+    medicine = forms.ModelChoiceField(
+        queryset=Medication.objects.all(),  # Fetch all medications from the inventory
+        label="Medicine",
+        widget=forms.Select(attrs={'class': 'form-control select2'})  # Enable searchable dropdown
     )
     quantity = forms.IntegerField(
-        min_value=1,
-        widget=forms.NumberInput(attrs={'class': 'form-control'}),
-        label="Quantity"
+        min_value=1, 
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
+
+    def save(self, appointment):
+        # Save medication details to the treatment
+        medicine = self.cleaned_data['medicine']
+        quantity = self.cleaned_data['quantity']
+        # Deduct the quantity from inventory
+        medicine.quantity -= quantity
+        medicine.save()
+
+        # Return medication details for further processing
+        return {
+            'name': medicine.name,
+            'dosage': medicine.dosage,
+            'price': medicine.unit_price,
+            'quantity': quantity
+        }
+
+
 
 
 # Add Consumable Form
 class AddConsumableForm(forms.Form):
+    class Meta:
+        model = Consumable
     consumable = forms.ModelChoiceField(
         queryset=Consumable.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'}),
@@ -97,7 +117,9 @@ class TreatmentHistoryForm(forms.ModelForm):
         }
         labels = {
             'treatment_notes': 'Treatment Notes',
+            'doctor': 'Doctor',
         }
+
 
 
 # Invoice Form

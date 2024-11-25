@@ -26,4 +26,8 @@ urlpatterns = [
 
     # Dynamic Filtering
     path('get_doctors_and_services/', views.get_doctors_and_services, name='get_doctors_and_services'),
+
+    path("update-total-cost/<int:appointment_id>/", views.update_total_cost, name="update_total_cost"),
+    path('generate_medical_report/<int:appointment_id>/', views.generate_medical_report, name='generate_medical_report'),
+    path('appointments/<int:appointment_id>/add-diagnosis/', views.add_diagnosis, name='add_diagnosis'),
 ]

@@ -41,6 +41,17 @@ def medication_delete(request, pk):
         return redirect('medication_list')
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
+@login_required
+def medicine_details(request, medicine_id):
+    try:
+        medicine = Medication.objects.get(id=medicine_id)
+        return JsonResponse({
+            'name': medicine.name,
+            'dosage': medicine.dosage,
+            'price': str(medicine.unit_price),  # Ensure unit_price is converted to string
+        })
+    except Medication.DoesNotExist:
+        return JsonResponse({'error': 'Medicine not found'}, status=404)
 
 
 # Consumable Views

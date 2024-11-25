@@ -243,6 +243,109 @@
         }
     });
     
+    document.addEventListener('DOMContentLoaded', function () {
+        const medicineSelect = document.getElementById('id_medicine'); // Medicine dropdown
+        const dosageField = document.getElementById('dosage');         // Dosage input field
+        const priceField = document.getElementById('price');           // Unit price input field
+        const quantityField = document.getElementById('id_quantity');  // Quantity input field
+        const totalCostField = document.getElementById('total-cost');  // Total cost input field
+    
+        // Fetch dosage and price when a medicine is selected
+        medicineSelect.addEventListener('change', function () {
+            const selectedMedicineId = this.value;
+    
+            // Debugging logs
+            console.log("Selected Medicine ID:", selectedMedicineId);
+    
+            if (!selectedMedicineId) {
+                dosageField.value = '';
+                priceField.value = '';
+                totalCostField.value = '';
+                return;
+            }
+    
+            // Fetch medicine details
+            fetch(`/inventory/medicine-details/${selectedMedicineId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched data:", data); // Log response for debugging
+    
+                    if (data.error) {
+                        dosageField.value = '';
+                        priceField.value = '';
+                        totalCostField.value = '';
+                    } else {
+                        dosageField.value = data.dosage || '';
+                        priceField.value = data.price || '';
+                        calculateTotalCost();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching medicine details:', error);
+                    alert('Failed to fetch medicine details. Please try again.');
+                });
+        });
+    
+        // Calculate total cost when quantity changes
+        quantityField.addEventListener('input', calculateTotalCost);
+    
+        function calculateTotalCost() {
+            const price = parseFloat(priceField.value) || 0; // Unit price
+            const quantity = parseInt(quantityField.value) || 0; // Quantity
+            const totalCost = price * quantity; // Calculate total cost
+            totalCostField.value = totalCost.toFixed(2); // Update total cost field
+        }
+    });
+    
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        const totalCostElement = document.getElementById("total-cost");
+        const updateTotalCostEndpoint = `/appointments/update-total-cost/`; // Backend endpoint to update the cost
+    
+        function updateAppointmentTotalCost(appointmentId, additionalCost) {
+            fetch(`${updateTotalCostEndpoint}${appointmentId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken, // Ensure CSRF token is sent
+                },
+                body: JSON.stringify({ additional_cost: additionalCost }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log("Total cost updated successfully:", data);
+                    totalCostElement.textContent = `$${data.total_cost.toFixed(2)}`;
+                })
+                .catch((error) => {
+                    console.error("Error updating total cost:", error);
+                });
+        }
+    
+        // Call this when a new service/medication is added
+        const addMedicationForm = document.getElementById("add-medication-form");
+        if (addMedicationForm) {
+            addMedicationForm.addEventListener("submit", function (event) {
+                const quantity = parseInt(document.getElementById("id_quantity").value, 10);
+                const price = parseFloat(document.getElementById("price").value);
+                const appointmentId = addMedicationForm.dataset.appointmentId; // Pass appointment ID dynamically
+    
+                const additionalCost = quantity * price;
+    
+                // Update total cost after medication is successfully added
+                updateAppointmentTotalCost(appointmentId, additionalCost);
+            });
+        }
+    });
     
     
 

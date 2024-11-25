@@ -1,10 +1,34 @@
 {% extends 'main/base.html' %}
 {% block content %}
-<h2>Add Medication</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Medication</button>
-    <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="container mt-4">
+    <h2>Add Medication</h2>
+    <form method="post" id="add-medication-form">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_medicine" class="form-label">Medicine</label>
+            {{ form.medicine }}
+        </div>
+        <div class="mb-3">
+            <label for="id_quantity" class="form-label">Quantity</label>
+            {{ form.quantity }}
+        </div>
+        <div class="mb-3">
+            <label for="dosage" class="form-label">Dosage</label>
+            <input type="text" id="dosage" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="price" class="form-label">Price (per unit)</label>
+            <input type="text" id="price" class="form-control" readonly> <!-- Field for unit price -->
+        </div>
+        <div class="mb-3">
+            <label for="total-cost" class="form-label">Total Cost</label>
+            <input type="text" id="total-cost" class="form-control" readonly> <!-- Field for total cost -->
+        </div>
+        <button type="submit" class="btn btn-primary">Add Medication</button>
+        <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+    
+    
+</div>
+
 {% endblock %}

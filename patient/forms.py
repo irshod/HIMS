@@ -1,5 +1,6 @@
 from django import forms
-from .models import Patient, PatientMedicalHistory, PatientInsurance, Prescription
+from .models import Patient, PatientMedicalHistory, PatientInsurance, Prescription, Diagnosis
+
 
 class PatientRegistrationForm(forms.ModelForm):
     class Meta:
@@ -57,6 +58,18 @@ class PrescriptionForm(forms.ModelForm):
             'recommendations': 'Additional Recommendations',
         }
 
+
+
+class DiagnosisForm(forms.ModelForm):
+    class Meta:
+        model = Diagnosis
+        fields = ['treatment_notes']
+        labels = {
+            'treatment_notes': 'Diagnosis Notes',
+        }
+        widgets = {
+            'treatment_notes': forms.Textarea(attrs={'class': 'form-control'}),
+        }
 
 
 class PatientMedicalHistoryForm(forms.ModelForm):

@@ -68,6 +68,7 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"Appointment #{self.id} for {self.patient.first_name} {self.patient.last_name}"
+    
 
 
 class Invoice(models.Model):
@@ -88,6 +89,13 @@ class Invoice(models.Model):
         elif self.total_paid() > 0:
             return 'partial'
         return 'unpaid'
+    
+    def update_payment_status(self):
+        if self.outstanding_balance() == 0:
+            self.appointment.payment_status = "paid"
+        else:
+            self.appointment.payment_status = "unpaid"
+        self.appointment.save(update_fields=["payment_status"])
 
 
 class Payment(models.Model):

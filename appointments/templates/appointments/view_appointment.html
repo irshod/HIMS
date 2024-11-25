@@ -13,7 +13,7 @@
     <!-- Appointment Information -->
     <div class="card mb-4">
       <div class="card-header">
-        <h5>Basic Information</h5>
+        <h5>Information</h5>
       </div>
       <div class="card-body">
         <p>
@@ -52,71 +52,98 @@
           {% endfor %}
         </ul>
         <p>
-          <strong>Total Cost:</strong> ${{ appointment.total_cost }}
+          <strong>Total Cost:</strong> <span id="total-cost">${{ appointment.total_cost }}</span>
         </p>
       </div>
     </div>
+   
 
     <!-- Patient Medical History (Read-Only) -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5>Medical History</h5>
-        {% if request.user|has_permission:'add_treatment_notes' %}
-          <a href="{% url 'add_treatment_notes' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Treatment Notes</a>
-        {% endif %}
-        {% if request.user|has_permission:'add_medication_to_treatment' %}
-          <a href="{% url 'add_medication_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Medication</a>
-        {% endif %}
-        {% if request.user|has_permission:'add_consumable_to_treatment' %}
-          <a href="{% url 'add_consumable_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Consumable</a>
-        {% endif %}
-        {% if request.user|has_permission:'add_service_to_appointment' %}
-          <a href="{% url 'add_service_to_appointment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Order Service</a>
-        {% endif %}
-      </div>
-      <div class="card-body">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Doctor</th>
-              <th>Notes</th>
-              <th>Medications</th>
-              <th>Consumables</th>
-              <th>Services</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for history in medical_history %}
-              <tr>
-                <td>{{ history.date|date:'Y-m-d H:i' }}</td>
-                <td>{{ history.doctor.get_full_name }}</td>
-                <td>{{ history.treatment_notes }}</td>
-                <td>
-                  {% for medication in history.treatment_medications.all %}
-                    {{ medication.medication.name }} ({{ medication.quantity }})<br />
-                  {% endfor %}
-                </td>
-                <td>
-                  {% for consumable in history.treatment_consumables.all %}
-                    {{ consumable.consumable.name }} ({{ consumable.quantity }})<br />
-                  {% endfor %}
-                </td>
-                <td>
-                  {% for service in history.appointment.services.all %}
-                    {{ service.name }}<br />
-                  {% endfor %}
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-center">No medical history available.</td>
-              </tr>
+    <div class="container-fluid">
+      <h3 class="widget-title">Appointment Details</h3>
+    
+      <!-- Current Appointment History -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5>Current Medical History</h5>
+          <div>
+            <a href="{% url 'add_diagnosis' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Diagnosis</a>
+            <a href="{% url 'add_treatment_notes' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Notes</a>
+            <a href="{% url 'add_medication_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Medication</a>
+            <a href="{% url 'add_consumable_to_treatment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Add Consumable</a>
+            <a href="{% url 'add_service_to_appointment' appointment.id %}" class="btn btn-primary {% if appointment.status != 'in_progress' %}disabled{% endif %}">Order Tests</a>
+            <a href="{% url 'generate_medical_report' appointment.id %}" class="btn btn-secondary">Generate PDF</a>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if history_by_date %}
+            {% for date, details in history_by_date.items %}
+            <h6 class="text-muted">{{ date }}</h6>
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th>Doctor</th>
+                  <th>Diagnosis</th>
+                  <th>Notes</th>
+                  <th>Medications</th>
+                  <th>Consumables</th>
+                  <th>Tests</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    {% if details.doctor %}
+                      {{ details.doctor.get_full_name }}
+                    {% else %}
+                      No doctor
+                    {% endif %}
+                  </td>
+                  
+                  <td>
+                    {% for diagnosis in details.diagnosis %}
+                      {{ diagnosis.treatment_notes }}<br />
+                    {% empty %}
+                      No diagnosis
+                    {% endfor %}
+                  </td>
+                  <td>{{ details.notes|default:"None" }}</td>
+
+                  <td>
+                    {% for medication in details.medications %}
+                      {{ medication.medication.name }} ({{ medication.quantity }})<br />
+                    {% empty %}
+                      No medications
+                    {% endfor %}
+                  </td>
+                  <td>
+                    {% for consumable in details.consumables %}
+                      {{ consumable.consumable.name }} ({{ consumable.quantity }})<br />
+                    {% empty %}
+                      No consumables
+                    {% endfor %}
+                  </td>
+                  <td>
+                    {% for service in details.services %}
+                      {{ service.name }}<br />
+                    {% empty %}
+                      No tests
+                    {% endfor %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             {% endfor %}
-          </tbody>
-        </table>
+          {% else %}
+            <p>No medical history available.</p>
+          {% endif %}
+        </div>
+        
       </div>
-    </div>
+    
+    
+    
+    
 
     <!-- Add Actions -->
     <div class="card mb-4">
