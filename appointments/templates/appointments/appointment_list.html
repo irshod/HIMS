@@ -20,7 +20,7 @@
                 <th>Patient</th>
                 <th>Doctor</th>
                 <th>Department</th>
-                <th>Services</th>
+                {% comment %} <th>Services</th> {% endcomment %}
                 <th>Date & Time</th>
                 <th>Type</th>
                 <th>Status</th>
@@ -34,13 +34,13 @@
                     <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
                     <td>Dr. {{ appointment.doctor.get_full_name }}</td>
                     <td>{{ appointment.department.name }}</td>
-                    <td>
+                    {% comment %} <td>
                         <ul>
                             {% for service in appointment.services.all %}
                                 <li>{{ service.name }}</li>
                             {% endfor %}
                         </ul>
-                    </td>
+                    </td> {% endcomment %}
                     <td>{{ appointment.appointment_date|date:"Y-m-d H:i" }}</td>
                     <td>{{ appointment.get_appointment_type_display }}</td>
                     <td>{{ appointment.get_status_display }}</td>

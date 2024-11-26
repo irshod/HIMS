@@ -225,7 +225,7 @@ def view_appointment(request, appointment_id):
         history_by_date[date]["notes"] = treatment.treatment_notes
         history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
         history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
-        history_by_date[date]["doctor"] = treatment.doctor  # Track doctor for treatments
+        history_by_date[date]["doctor"] = appointment.doctor  # Track doctor for treatments
 
     # Fetch and group services/tests
     for service in appointment.services.all():
@@ -537,13 +537,7 @@ def generate_medical_report(request, appointment_id):
         history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
         history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
 
-    for diagnosis in Diagnosis.objects.filter(appointment=appointment):
-        history_by_date[localdate(diagnosis.date)]["diagnosis"].append({
-            "doctor": diagnosis.doctor,
-            "notes": diagnosis.notes,
-            # Add other fields as needed
-        })
-
+   
 
     # Populate services/tests
     for service in appointment.services.all():
