@@ -3,11 +3,6 @@ from django.conf import settings
 from appointments.models import Appointment
 
 class Patient(models.Model):
-    PATIENT_TYPE_CHOICES = [
-        ('IPD', 'Inpatient'),
-        ('OPD', 'Outpatient'),
-    ]
-    
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),
@@ -26,7 +21,6 @@ class Patient(models.Model):
     emergency_contact_email = models.EmailField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    patient_type = models.CharField(max_length=3, choices=PATIENT_TYPE_CHOICES, default='OPD')
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.contact_number})"

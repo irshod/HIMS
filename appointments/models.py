@@ -17,8 +17,8 @@ class Appointment(models.Model):
         ('unpaid', 'Unpaid'),
     ]
     APPOINTMENT_TYPE_CHOICES = [
-        ('opd', 'Outpatient'),
-        ('ipd', 'Inpatient'),
+        ('IPD', 'Outpatient'),
+        ('OPD', 'Inpatient'),
     ]
 
     patient = models.ForeignKey('patient.Patient', on_delete=models.CASCADE, related_name='appointments')

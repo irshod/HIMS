@@ -1,0 +1,216 @@
+Folder PATH listing
+Volume serial number is 38F4-2F75
+D:.
+|   db.sqlite3
+|   manage.py
+|   output.txt
+|   README.md
+|   
++---.vscode
+|       settings.json
+|       
++---appointments
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |           
+|   +---templates
+|   |   +---appointments
+|   |   |       appointment_list.html
+|   |   |       calendar.html
+|   |   |       create_appointment.html
+|   |   |       generate_invoice.html
+|   |   |       ipd_appointments.html
+|   |   |       opd_appointments.html
+|   |   |       view_appointment.html
+|   |   |       
+|   |   \---treatment
+|   |           add_consumable.html
+|   |           add_diagnosis.html
+|   |           add_medication.html
+|   |           add_service.html
+|   |           add_treatment_notes.html
++---departments
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   utils.py
+|   |   views.py
+|   |   __init__.py
+|   |           
+|   +---templates
+|   |   +---beds
+|   |   |       bed_form.html
+|   |   |       bed_list.html
+|   |   |       floor_form.html
+|   |   |       floor_list.html
+|   |   |       floor_view.html
+|   |   |       room_form.html
+|   |   |       room_list.html
+|   |   |       
+|   |   +---departments
+|   |   |       department_add.html
+|   |   |       department_edit.html
+|   |   |       department_list.html
+|   |   |       department_view.html
+|   |   |       
+|   |   +---doctors
+|   |   |       doctor_add.html
+|   |   |       doctor_edit.html
+|   |   |       doctor_list.html
+|   |   |       doctor_view.html
+|   |   |       
+|   |   +---nurses
+|   |   |       nurse_add.html
+|   |   |       nurse_edit.html
+|   |   |       nurse_list.html
+|   |   |       nurse_view.html
+|   |   |       
+|   |   \---services
+|   |           service_add.html
+|   |           service_edit.html
+|   |           service_list.html
+|       
++---finance
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |           
+|   +---templates
+|   |   \---finance
+|   |           invoice_list.html
+|   |           payment_list.html
+|   |           wages.html
+|   |           
++---HIMS
+|   |   asgi.py
+|   |   settings.py
+|   |   urls.py
+|   |   wsgi.py
+|   |   __init__.py
+
++---inventory
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+
+|   +---templates
+|   |   \---inventory
+|   |           consumable_form.html
+|   |           consumable_list.html
+|   |           medication_form.html
+|   |           medication_list.html
+|   |           
++---main
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   |           
+|   +---templates
+|   |   \---main
+|   |       |   base.html
+|   |       |   dashboard.html
+|   |       |   footer.html
+|   |       |   login.html
+|   |       |   navbar.html
+|   |       |   sidebar.html
+|   |       |   
+|   |       +---roles
+|   |       |       role_add.html
+|   |       |       role_edit.html
+|   |       |       role_list.html
+|   |       |       role_view.html
+|   |       |       
+|   |       \---users
+|   |               user_add.html
+|   |               user_edit.html
+|   |               user_list.html
+|   |               user_view.html
+|   |               
+|   +---templatetags
+|   |   |   permissions.py
+|   |   |   __init__.py
+|   |   |   
+|           
++---patient
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   |           
+|   +---templates
+|   |   \---patient
+|   |           add_insurance.html
+|   |           add_medical_history.html
+|   |           insurance_details.html
+|   |           medical_history.html
+|   |           patient_add.html
+|   |           patient_edit.html
+|   |           patient_list.html
+|   |           patient_profile.html
+|   |           
+|   \---__pycache__
+|           admin.cpython-312.pyc
+|           apps.cpython-312.pyc
+|           forms.cpython-312.pyc
+|           models.cpython-312.pyc
+|           urls.cpython-312.pyc
+|           views.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
++---static
+|   +---charts
+|   |   +---css
+|   |   |       morris.css
+|   |   |       
+|   |   \---js
+|   |           morris.min.js
+|   |           raphael-min.js
+|   |           
+|   +---css
+|   |       animate.css
+|   |       bootstrap.min.css
+|   |       calendar.css
+|   |       responsive.css
+|   |       styles.css
+|   |       themify-icons.css
+|   |       
+|   |       
+|   |       
+|   \---js
+|           bootstrap.min.js
+|           custom-calendar.js
+|           custom-morris.js
+|           jquery-3.2.1.min.js
+|           modernizr.min.js
+|           popper.min.js
+|           script.js

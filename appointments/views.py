@@ -16,6 +16,8 @@ from reportlab.pdfgen import canvas
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from django.utils.timezone import localdate
+from django.db.models import Q
+
 
 # Create Appointment
 @login_required
@@ -49,8 +51,6 @@ def create_appointment(request):
         'service_queryset': service_queryset,
     })
 
-
-
 def get_doctors_and_services(request):
     department_id = request.GET.get('department_id')
     doctors = []
@@ -67,7 +67,6 @@ def get_doctors_and_services(request):
         ]
 
     return JsonResponse({'doctors': doctors, 'services': services})
-
 
 # Generate Invoice
 @login_required
@@ -95,9 +94,6 @@ def generate_invoice(request, appointment_id):
         'appointment': appointment,
         'invoice': invoice,
     })
-
-
-
 
 # Process Payment
 @login_required
@@ -154,9 +150,6 @@ def process_payment(request, invoice_id):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
-
-
-
 # PDF Invoice
 @login_required
 def generate_pdf_invoice(request, appointment_id):
@@ -188,17 +181,60 @@ def generate_pdf_invoice(request, appointment_id):
 
     return response
 
-
 # View to list all appointments
 @login_required
 @user_passes_test(lambda u: has_permission(u, "view_appointment"))
 def appointments_list(request):
-    appointments = Appointment.objects.all().order_by('-appointment_date')  
-    paginator = Paginator(appointments, 10) 
-    page_number = request.GET.get('page') 
+    query = Q()
+
+    # Filters
+    patient_name = request.GET.get('patient_name', '').strip()
+    doctor_name = request.GET.get('doctor_name', '').strip()
+    department_id = request.GET.get('department')
+    status = request.GET.get('status')
+    date_after = request.GET.get('date_after')
+    date_before = request.GET.get('date_before')
+
+    # Apply filters
+    if patient_name:
+        query &= Q(patient__first_name__icontains=patient_name) | Q(patient__last_name__icontains=patient_name)
+
+    if doctor_name:
+        query &= Q(doctor__first_name__icontains=doctor_name) | Q(doctor__last_name__icontains=doctor_name)
+
+    if department_id:
+        query &= Q(department_id=department_id)
+
+    if status and status in dict(Appointment.STATUS_CHOICES):  # Validate against STATUS_CHOICES
+        query &= Q(status=status)
+
+    if date_after:
+        query &= Q(appointment_date__gte=date_after)
+
+    if date_before:
+        query &= Q(appointment_date__lte=date_before)
+
+    # Query and paginate
+    appointments = Appointment.objects.filter(query).order_by('-appointment_date')
+    paginator = Paginator(appointments, 10)
+    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'appointments/appointment_list.html', {'page_obj': page_obj})
+    # Pass filters to the template
+    context = {
+        'page_obj': page_obj,
+        'patient_name': patient_name,
+        'doctor_name': doctor_name,
+        'department_id': department_id,
+        'current_status': status,  # Pass the current status filter
+        'date_after': date_after,
+        'date_before': date_before,
+        'departments': Department.objects.all(),
+        'status_choices': Appointment.STATUS_CHOICES,  # Pass STATUS_CHOICES to the template
+    }
+
+    return render(request, 'appointments/appointment_list.html', context)
+
 
 
 @login_required
@@ -237,8 +273,6 @@ def view_appointment(request, appointment_id):
         'history_by_date': dict(history_by_date),  # Pass as a dictionary for template rendering
     })
 
-
-
 # Update status to in-progress (doctor starts the appointment)
 @login_required
 @user_passes_test(lambda u: has_permission(u, "update_appointment_status"))
@@ -269,8 +303,6 @@ def complete_appointment(request, appointment_id):
     messages.success(request, "Appointment marked as 'Completed'.")
     return redirect('view_appointment', appointment_id=appointment.id)
 
-
-
 # Cancel an appointment (no delete functionality)
 @login_required
 @user_passes_test(lambda u: u.has_perm('appointments.cancel_appointment'))  
@@ -284,8 +316,6 @@ def cancel_appointment(request, appointment_id):
         messages.error(request, "Only pending appointments can be cancelled.")
     return redirect('appointments_list')
 
-
-
 # Calendar view showing appointment availability
 @login_required
 @user_passes_test(lambda u: has_permission(u, "view_calendar"))
@@ -296,8 +326,6 @@ def calendar_view(request):
         'departments': departments,
         'doctors': doctors,
     })
-
-
 
 def appointment_events(request):
     date_str = request.GET.get('date', datetime.now().strftime('%Y-%m-%d'))
@@ -334,9 +362,6 @@ def appointment_events(request):
         for appointment in appointments
     ]
     return JsonResponse(events, safe=False)
-
-
-
 
 # Treatment Notes
 @login_required
@@ -376,7 +401,6 @@ def add_diagnosis(request, appointment_id):
         'appointment': appointment,
     })
 
-
 # Add service after consultation or when needed
 @login_required
 @user_passes_test(lambda u: u.has_perm('appointments.add_service'))
@@ -406,8 +430,6 @@ def add_service_to_appointment(request, appointment_id):
         'form': form,
         'appointment': appointment,
     })
-
-
 
 # Add Medication to Treatment
 @login_required
@@ -448,10 +470,6 @@ def add_medication_to_treatment(request, appointment_id):
         'appointment': appointment,
     })
 
-
-from django.http import JsonResponse
-from .models import Appointment
-
 @login_required
 def update_total_cost(request, appointment_id):
     if request.method == "POST":
@@ -473,10 +491,6 @@ def update_total_cost(request, appointment_id):
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
-
-
-
-
 
 # Add Consumable to Treatment
 @login_required
@@ -508,8 +522,6 @@ def add_consumable_to_treatment(request, appointment_id):
         'form': form,
         'appointment': appointment,
     })
-
-
 
 def generate_medical_report(request, appointment_id):
     # Fetch appointment

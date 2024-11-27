@@ -8,25 +8,49 @@ from appointments.models import Appointment
 from .forms import PatientRegistrationForm
 from .models import Patient
 from .forms import PrescriptionForm, PatientRegistrationForm, PatientMedicalHistoryForm, PatientInsuranceForm
+from django.db.models import Q
+from datetime import datetime, timedelta
 
 @login_required
 @user_passes_test(lambda u: has_permission(u, "view_patient"))
 def patient_list(request):
-    filter_type = request.GET.get('filter', 'all')
-    if filter_type == 'ipd':
-        patients = Patient.objects.filter(patient_type='IPD')
-    elif filter_type == 'opd':
-        patients = Patient.objects.filter(patient_type='OPD')
-    else:
-        patients = Patient.objects.all()
-
+    query = Q()
+    
+    # Filter by age range
+    age_min = request.GET.get('age_min')
+    age_max = request.GET.get('age_max')
+    if age_min:
+        age_min_date = datetime.now() - timedelta(days=int(age_min) * 365)
+        query &= Q(date_of_birth__lte=age_min_date)
+    if age_max:
+        age_max_date = datetime.now() - timedelta(days=int(age_max) * 365)
+        query &= Q(date_of_birth__gte=age_max_date)
+    
+    # Filter by creation time range
+    created_after = request.GET.get('created_after')
+    created_before = request.GET.get('created_before')
+    if created_after:
+        query &= Q(created_at__gte=created_after)
+    if created_before:
+        query &= Q(created_at__lte=created_before)
+    
+    # Search by name
+    search = request.GET.get('search', '')
+    if search:
+        query &= Q(first_name__icontains=search) | Q(last_name__icontains=search)
+    
+    patients = Patient.objects.filter(query).distinct()
     paginator = Paginator(patients, 10)  # 10 patients per page
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'patient/patient_list.html', {
         'patients': page_obj,
-        'filter_type': filter_type
+        'search': search,
+        'age_min': age_min,
+        'age_max': age_max,
+        'created_after': created_after,
+        'created_before': created_before,
     })
 
 
