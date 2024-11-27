@@ -1,0 +1,54 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+Room List | HIMS
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Room List</h1>
+    <a href="{% url 'add_room' %}" class="btn btn-primary mb-4">Add New Room</a>
+    <div class="row">
+        {% for floor, rooms in rooms_by_floor.items %}
+        <div class="col-12 mb-4">
+            <h3>Floor {{ floor }}</h3>
+            <div class="d-flex flex-wrap">
+                {% for room in rooms %}
+                <div class="border p-3 m-2" style="min-width: 200px; max-width: 250px;">
+                    <h5>Room {{ room.number }}</h5>
+                    {% if room.is_occupied %}
+                        <span class="badge bg-danger mb-2">Occupied</span>
+                    {% else %}
+                        <span class="badge bg-success mb-2">Available</span>
+                    {% endif %}
+                    <div class="d-flex flex-wrap">
+                        {% for bed in room.beds.all %}
+                        <div class="border m-1 text-center" style="width: 50px; height: 50px;">
+                            <strong>{{ bed.bed_number }}</strong>
+                            <br>
+                            {% if bed.status == 'available' %}
+                                <span class="badge bg-success">A</span>
+                            {% elif bed.status == 'occupied' %}
+                                <span class="badge bg-danger">O</span>
+                            {% else %}
+                                <span class="badge bg-warning">M</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'edit_room' room.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                data-item-name="Room {{ room.number }}"
+                                data-url="{% url 'delete_room' room.id %}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

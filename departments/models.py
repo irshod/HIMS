@@ -68,3 +68,56 @@ class StaffAvailability(models.Model):
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.status}"
 
+
+
+class Floor(models.Model):
+    floor_number = models.IntegerField(unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Floor {self.floor_number}"
+
+    def get_rooms(self):
+        return self.rooms.all()
+
+
+class Room(models.Model):
+    ROOM_TYPE_CHOICES = [
+        ('general', 'General Ward'),
+        ('private', 'Private Room'),
+        ('icu', 'ICU'),
+    ]
+
+    name = models.CharField(max_length=100, unique=True)
+    room_type = models.CharField(max_length=10, choices=ROOM_TYPE_CHOICES, default='general')
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE, related_name='rooms')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='rooms')
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.get_room_type_display()}) on Floor {self.floor.floor_number}"
+
+    def get_beds(self):
+        return self.beds.all()
+
+
+class Bed(models.Model):
+    BED_STATUS_CHOICES = [
+        ('available', 'Available'),
+        ('occupied', 'Occupied'),
+        ('maintenance', 'Maintenance'),
+    ]
+
+    bed_number = models.CharField(max_length=10, unique=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='beds')
+    status = models.CharField(max_length=15, choices=BED_STATUS_CHOICES, default='available')
+    current_patient = models.OneToOneField(
+        'patient.Patient',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bed'
+    )
+
+    def __str__(self):
+        return f"Bed {self.bed_number} in Room {self.room.name} ({self.get_status_display()})"

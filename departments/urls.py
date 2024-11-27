@@ -26,4 +26,23 @@ urlpatterns = [
     path('nurses/add/', views.add_nurse, name='add_nurse'),
     path('nurses/edit/<int:nurse_id>/', views.edit_nurse, name='edit_nurse'),
     path('nurses/view/<int:nurse_id>/', views.view_nurse, name='view_nurse'),
+    
+    # Floors URLs
+    path('floors/', views.list_floor, name='list_floor'),
+    path('floors/add/', views.add_floor, name='add_floor'),
+    path('floors/edit/<int:floor_id>/', views.edit_floor, name='edit_floor'),
+    path('floors/delete/<int:floor_id>/', views.delete_floor, name='delete_floor'),
+
+    # Room Management
+    path('rooms/', views.list_room, name='list_room'),
+    path('rooms/add/', views.add_room, name='add_room'),
+    path('rooms/edit/<int:room_id>/', views.edit_room, name='edit_room'),
+    path('rooms/delete/<int:room_id>/', views.delete_room, name='delete_room'),
+    
+    # Bed Manangement
+    path('beds/', views.list_bed, name='list_bed'),
+    path('beds/add/', views.add_bed, name='add_bed'),
+    path('beds/edit/<int:bed_id>/', views.edit_bed, name='edit_bed'),
+    path('beds/delete/<int:bed_id>/', views.delete_bed, name='delete_bed'),
 ]
+

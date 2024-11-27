@@ -83,13 +83,13 @@
       </a>
       <ul class="collapse list-unstyled" id="nav-rooms">
         <li>
-          <a href="add-room.html"><span class="fas fa-plus-circle"></span> Add Room Allotment</a>
+          <a href="{% url 'list_room' %}"><span class="fas fa-list"></span> All Rooms</a>
         </li>
         <li>
-          <a href="rooms.html"><span class="fas fa-list"></span> All Rooms</a>
+          <a href="{% url 'list_floor' %}"><span class="fas fa-plus-circle"></span>Floors</a>
         </li>
         <li>
-          <a href="edit-room.html"><span class="fas fa-edit"></span> Edit Room Allotment</a>
+          <a href="{% url 'list_bed' %}"><span class="fas fa-edit"></span> Beds</a>
         </li>
       </ul>
     </li>

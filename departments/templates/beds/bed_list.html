@@ -1,0 +1,50 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+Bed List | HIMS
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Bed List</h1>
+        <a href="{% url 'add_bed' %}" class="btn btn-primary">Add Bed</a>
+    </div>
+
+    {% for floor, rooms in beds_by_floor.items %}
+    <div class="mb-4">
+        <h2 class="mb-3">Floor {{ floor }}</h2>
+        <div class="border p-3 rounded">
+            {% for room, beds in rooms.items %}
+            <div class="mb-4">
+                <h4>Room {{ room.name }}</h4>
+                <div class="d-flex flex-wrap">
+                    {% for bed in beds %}
+                    <div class="border rounded p-2 m-2 text-center" style="width: 100px;">
+                        <strong>Bed {{ bed.bed_number }}</strong>
+                        <br>
+                        {% if bed.status == 'available' %}
+                            <span class="badge bg-success">Available</span>
+                        {% elif bed.status == 'occupied' %}
+                            <span class="badge bg-danger">Occupied</span>
+                        {% else %}
+                            <span class="badge bg-warning">Maintenance</span>
+                        {% endif %}
+                        <div class="mt-2">
+                            <a href="{% url 'edit_bed' bed.id %}" class="btn btn-sm btn-primary">Edit</a>
+                            <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                    data-item-name="Bed {{ bed.bed_number }}"
+                                    data-url="{% url 'delete_bed' bed.id %}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal">Delete</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
