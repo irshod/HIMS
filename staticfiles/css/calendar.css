@@ -1,0 +1,24 @@
+.hours-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.calendar-hour {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.event {
+    padding: 5px;
+    background-color: #e3f7d1;
+    border: 1px solid #c1e1b4;
+    border-radius: 3px;
+    margin-top: 5px;
+}
+
+.text-muted {
+    color: #999;
+}

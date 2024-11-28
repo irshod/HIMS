@@ -4,9 +4,21 @@
 <nav id="sidebar" class="hims-bg">
   <ul class="list-unstyled components">
     <li class="active">
-      <a href="#nav-dashboard" data-bs-toggle="collapse" aria-expanded="true"><span class="fas fa-home"></span> Dashboard</a>
+      <a href="#" data-bs-toggle="collapse" aria-expanded="true"><span class="fas fa-home"></span> Dashboard</a>
     </li>
-
+    
+    <li>
+      <a href="{% url 'admin_dashboard' %}"><span class="fas fa-list"></span>admin_dashboard</a>
+    </li>
+    <li>
+      <a href="{% url 'doctor_dashboard' %}"><span class="fas fa-list"></span>doctor_dashboard</a>
+    </li>
+    <li>
+      <a href="{% url 'nurse_dashboard' %}"><span class="fas fa-list"></span>nurse_dashboard</a>
+    </li>
+    <li>
+      <a href="{% url 'receptionist_dashboard' %}"><span class="fas fa-list"></span>receptionist_dashboard</a>
+    </li>
     <!-- Patient Section -->
     <li>
       <a href="#patientSubmenu" data-toggle="collapse" aria-expanded="false">

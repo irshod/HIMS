@@ -1,0 +1,186 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}
+  Admin Dashboard
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <!-- Quick Stats Cards -->
+    <div class="row">
+      <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-header">Total Patients</div>
+          <div class="card-body">
+            <h5 class="card-title">{{ total_patients }}</h5>
+            <p class="card-text">Registered in the system</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+          <div class="card-header">Appointments</div>
+          <div class="card-body">
+            <h5 class="card-title">{{ total_appointments }}</h5>
+            <p class="card-text">Scheduled this month</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+          <div class="card-header">Invoices</div>
+          <div class="card-body">
+            <h5 class="card-title">{{ unpaid_invoices }}</h5>
+            <p class="card-text">Unpaid invoices</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+          <div class="card-header">Doctors</div>
+          <div class="card-body">
+            <h5 class="card-title">{{ total_doctors }}</h5>
+            <p class="card-text">Active in the system</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <span>Admissions</span>
+            <select id="timeFilter" class="form-select form-select-sm" style="width: auto;">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div id="filterableChart" style="width: 100%; height: 400px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admissions Charts -->
+
+      <!-- Revenue Chart -->
+      <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-success text-white d-flex justify-content-between">
+            <span>Revenue</span>
+            <select id="revenueTimeFilter" class="form-select form-select-sm" style="width: auto;">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div id="filterableRevenueChart" style="width: 100%; height: 400px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Inventory -->
+      <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-warning text-dark">Low Inventory Items</div>
+          <div class="card-body">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Stock Level</th>
+                  <th>Reorder Threshold</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in low_inventory_items %}
+                  <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.reorder_level }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Recent Activity -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h3>Recent Activity</h3>
+      <ul class="list-group">
+        {% for activity in recent_activities %}
+          <li class="list-group-item">
+            <span class="badge bg-primary">{{ activity.timestamp }}</span>
+            {{ activity.message }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current', { packages: ['corechart'] })
+    google.charts.setOnLoadCallback(initCharts)
+    
+    let admissionsData = JSON.parse('{{ admissions_data|escapejs }}')
+    let revenueData = JSON.parse('{{ revenue_data|escapejs }}')
+    let currentAdmissionsData = admissionsData.daily // Default to daily admissions
+    let currentRevenueData = revenueData.monthly // Default to monthly revenue
+    
+    function initCharts() {
+      drawAdmissionsChart(currentAdmissionsData)
+      drawRevenueChart(currentRevenueData)
+      setupFilters()
+    }
+    
+    function drawAdmissionsChart(data) {
+      const chartData = google.visualization.arrayToDataTable(data)
+      const options = {
+        title: 'Admissions',
+        hAxis: { title: 'Time' },
+        vAxis: { title: 'Admissions', minValue: 0 }
+      }
+      const chart = new google.visualization.LineChart(document.getElementById('filterableChart'))
+      chart.draw(chartData, options)
+    }
+    
+    function drawRevenueChart(data) {
+      const chartData = google.visualization.arrayToDataTable(data)
+      const options = {
+        title: 'Revenue',
+        hAxis: { title: 'Time' },
+        vAxis: { title: 'Revenue', minValue: 0 }
+      }
+      const chart = new google.visualization.ColumnChart(document.getElementById('filterableRevenueChart'))
+      chart.draw(chartData, options)
+    }
+    
+    function setupFilters() {
+      // Admissions Time Filter
+      document.getElementById('timeFilter').addEventListener('change', function () {
+        const selectedFilter = this.value
+        currentAdmissionsData = admissionsData[selectedFilter]
+        drawAdmissionsChart(currentAdmissionsData)
+      })
+    
+      // Revenue Time Filter
+      document.getElementById('revenueTimeFilter').addEventListener('change', function () {
+        const selectedFilter = this.value
+        currentRevenueData = revenueData[selectedFilter]
+        drawRevenueChart(currentRevenueData)
+      })
+    }
+  </script>
+{% endblock %}

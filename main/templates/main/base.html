@@ -24,7 +24,6 @@
     <!-- Main CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
 
-    <link rel="stylesheet" href="{% static 'charts/css/morris.css' %}" />
     <!-- CDN for Day.js -->
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.4/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.4/plugin/isBetween.js"></script>
@@ -89,15 +88,19 @@
     <script src="{% static 'js/popper.min.js' %}"></script>
     <!-- Bootstrap Library -->
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <!-- morris charts -->
-    <script src="{% static 'charts/js/raphael-min.js' %}"></script>
-    <script src="{% static 'charts/js/morris.min.js' %}"></script>
-    <script src="{% static 'js/custom-morris.js' %}"></script>
+    
+    
 
     <!-- Custom Script -->
     <script src="{% static 'js/script.js' %}"></script>
 
     <!-- Calendar JavaScript -->
     <script src="{% static 'js/custom-calendar.js' %}"></script>
+    
+    <!-- Dashboard Charts JavaScript -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    
   </body>
 </html>
