@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db import models
+from django.utils.timezone import now
 from .models import CustomUser, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
 from django.contrib import messages
@@ -10,10 +10,13 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from appointments.models import Appointment, Invoice
 from patient.models import Patient
-from departments.models import DoctorProfile, NurseProfile, Department
-from django.utils import timezone
-from django.shortcuts import render
-from django.utils.timezone import now
+from departments.models import DoctorProfile
+from django.db.models import Count, Sum, F
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
+from django.http import HttpResponseForbidden
+from inventory.models import Medication, Consumable
+import calendar
+import json
 
 User = get_user_model()  # Reference to your custom user model
 
@@ -65,17 +68,6 @@ def logout_view(request):
 #         'total_doctors': total_doctors,
 #         'recent_activities': recent_activities,
 #     })
-
-from django.db.models import Count, Sum, F
-from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
-from django.utils.timezone import now
-from django.shortcuts import render
-from django.http import HttpResponseForbidden
-from patient.models import Patient
-from appointments.models import Appointment, Invoice
-from inventory.models import Medication, Consumable
-import calendar
-import json
 
 
 def admin_dashboard(request):
