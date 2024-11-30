@@ -1,11 +1,11 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     # Authentication
     path('', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    # path('dashboard/', views.dashboard_view, name='dashboard'),
 
     # User URLs
     path('user_list/', views.list_user, name='user_list'),
@@ -31,6 +31,8 @@ urlpatterns = [
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/mark-as-read/', views.notification_as_read, name='mark_notifications_as_read'),
 
-    # Error Page
-    path('users/not_found/', views.not_found, name='not_found'),
 ]
+
+
+
+

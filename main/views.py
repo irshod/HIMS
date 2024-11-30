@@ -1,36 +1,44 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
 from django.utils.timezone import now
+from django.http import HttpResponseForbidden, JsonResponse
+from django.core.paginator import Paginator
+from django.contrib import messages
+from django.db.models import Count, Sum, F
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
+import calendar
+import json
 from .models import CustomUser, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
-from django.contrib import messages
-from django.http import JsonResponse
-from django.core.paginator import Paginator
 from appointments.models import Appointment, Invoice
 from patient.models import Patient
 from departments.models import DoctorProfile
-from django.db.models import Count, Sum, F
-from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
-from django.http import HttpResponseForbidden
 from inventory.models import Medication, Consumable
-import calendar
-import json
+from .decorators import role_required
 
-User = get_user_model()  # Reference to your custom user model
+User = get_user_model()  # Reference to custom user model
 
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST['username']  # Assuming you're using email as the login identifier
+        email = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            print(f"Authenticated user: {user.email}, Roles: {[role.name for role in user.roles.all()]}")
+            if user.has_role('Admin'):
+                return redirect('admin_dashboard')
+            elif user.has_role('Doctor'):
+                return redirect('doctor_dashboard')
+            elif user.has_role('Nurse'):
+                return redirect('nurse_dashboard')
+            elif user.has_role('Receptionist'):
+                return redirect('receptionist_dashboard')
         else:
             return render(request, 'main/login.html', {'error': 'Invalid email or password'})
     return render(request, 'main/login.html')
+
 
 def logout_view(request):
     logout(request)
@@ -69,7 +77,7 @@ def logout_view(request):
 #         'recent_activities': recent_activities,
 #     })
 
-
+@role_required(['Admin'])
 def admin_dashboard(request):
     if not request.user.roles.filter(name='Admin').exists():
         return HttpResponseForbidden("Access Denied")
@@ -146,8 +154,7 @@ def admin_dashboard(request):
     }
     return render(request, "main/dashboards/admin_dashboard.html", context)
 
-
-
+@role_required(['Doctor'])
 def doctor_dashboard(request):
     if not request.user.roles.filter(name='Doctor').exists():
         return HttpResponseForbidden("Access Denied")
@@ -156,8 +163,9 @@ def doctor_dashboard(request):
         "total_appointments": Appointment.objects.filter(doctor=request.user).count(),
         "patients_today": Appointment.objects.filter(doctor=request.user, appointment_date__date=now().date()).count(),
     }
-    return render(request, 'doctor_dashboard.html', data)
+    return render(request, 'main/dashboards/doctor_dashboard.html', data)
 
+@role_required(['Nurse'])
 def nurse_dashboard(request):
     if not request.user.roles.filter(name='Nurse').exists():
         return HttpResponseForbidden("Access Denied")
@@ -166,21 +174,36 @@ def nurse_dashboard(request):
         "assigned_patients": Patient.objects.filter(appointments__nurse=request.user).count(),
         "appointments_today": Appointment.objects.filter(nurse=request.user, appointment_date__date=now().date()).count(),
     }
-    return render(request, 'nurse_dashboard.html', data)
+    return render(request, 'main/dashboards/nurse_dashboard.html', data)
 
+@role_required(['Receptionist'])
 def receptionist_dashboard(request):
-    if not request.user.roles.filter(name='Receptionist').exists():
-        return HttpResponseForbidden("Access Denied")
+    total_patients = Patient.objects.count()
+    total_appointments = Appointment.objects.filter(appointment_date__month=now().month).count()
+    unpaid_invoices = Invoice.objects.filter(total_amount__gt=0, payments__isnull=True).count()
+    total_doctors = CustomUser.objects.filter(roles__name="Doctor", is_active=True).count()
+    recent_activities = Appointment.objects.order_by('-updated_at')[:5]
+    todays_patients = Appointment.objects.filter(appointment_date__date=now().date()).select_related('patient', 'doctor')
+    today_appointments = Appointment.objects.filter(appointment_date__date=now().date()).count()
+    unregistered_patients = Patient.objects.filter(appointments=None).count()
 
-    data = {
-        "today_appointments": Appointment.objects.filter(appointment_date__date=now().date()).count(),
-        "unregistered_patients": Patient.objects.filter(appointments=None).count(),
+    context = {
+        'total_patients': total_patients,
+        'total_appointments': total_appointments,
+        'unpaid_invoices': unpaid_invoices,
+        'total_doctors': total_doctors,
+        'recent_activities': recent_activities,
+        'todays_patients': todays_patients,
+        'today_appointments': today_appointments,
+        'unregistered_patients': unregistered_patients,
     }
-    return render(request, 'receptionist_dashboard.html', data)
+
+    return render(request, 'main/dashboards/receptionist_dashboard.html', context)
+
 
 
 # User Management
-@login_required
+@role_required(['Admin'])
 def list_user(request):
     users = CustomUser.objects.all()
     paginator = Paginator(users, 10)
@@ -188,12 +211,17 @@ def list_user(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'main/users/user_list.html', {'page_obj': page_obj})
 
-@login_required
+@role_required(['Admin'])
 def view_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
-    return render(request, 'main/users/user_view.html', {'user': user})
+    context = {
+        'user': user,
+        'roles': user.roles.all(),
+    }
+    return render(request, 'main/users/user_view.html', context)
+    
 
-@login_required
+@role_required(['Admin'])
 def add_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -211,8 +239,7 @@ def add_user(request):
         form = CustomUserCreationForm()
     return render(request, 'main/users/user_add.html', {'form': form})
 
-
-@login_required
+@role_required(['Admin'])
 def edit_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     if request.method == 'POST':
@@ -225,8 +252,7 @@ def edit_user(request, user_id):
         form = CustomUserEditForm(instance=user)
     return render(request, 'main/users/user_edit.html', {'form': form})
 
-
-@login_required
+@role_required(['Admin'])
 def delete_user(request, pk):
     user = get_object_or_404(CustomUser, id=pk)
     if request.method == 'POST':
@@ -235,53 +261,44 @@ def delete_user(request, pk):
         return redirect('user_list')
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
-    
-    
-
 # Role Management
-@login_required
+@role_required(['Admin'])
 def list_role(request):
-    roles = Role.objects.all()  # Updated to fetch Role model objects
+    roles = Role.objects.all()
     paginator = Paginator(roles, 10)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     return render(request, 'main/roles/role_list.html', {'page_obj': page_obj})
 
 
-@login_required
+@role_required(['Admin'])
 def view_role(request, role_id):
-    role = get_object_or_404(Role, id=role_id)  # Updated to fetch Role model object
+    role = get_object_or_404(Role, id=role_id)
     permissions = role.permissions.all()
     return render(request, 'main/roles/role_view.html', {'role': role, 'permissions': permissions})
 
 
-@login_required
+@role_required(['Admin'])
 def add_role(request):
     if request.method == 'POST':
         form = RoleCreationForm(request.POST)
         if form.is_valid():
-            # Create and save the new role
             role = form.save(commit=False)
-            role.save()  # Save role first to access permissions
-            
-            # Set permissions after role creation
+            role.save()
             permissions = form.cleaned_data.get('permissions')
             if permissions:
-                role.permissions.set(permissions)  # Set permissions for the role
-            
+                role.permissions.set(permissions)            
             messages.success(request, f"Role '{role.name}' has been added successfully with {permissions.count()} permissions.")
             return redirect('role_list')
         else:
             messages.error(request, 'There was an error with the form submission. Please review the details and try again.')
     else:
         form = RoleCreationForm()
-
-    # Display the form for GET requests
     return render(request, 'main/roles/role_add.html', {'form': form})
 
-@login_required
+@role_required(['Admin'])
 def edit_role(request, role_id):
-    role = get_object_or_404(Role, id=role_id)  # Updated to fetch Role model object
+    role = get_object_or_404(Role, id=role_id)
     if request.method == 'POST':
         form = RoleCreationForm(request.POST, instance=role)
         if form.is_valid():
@@ -296,7 +313,7 @@ def edit_role(request, role_id):
     return render(request, 'main/roles/role_edit.html', {'form': form})
 
 
-@login_required
+@role_required(['Admin'])
 def delete_role(request, pk):
     role = get_object_or_404(Role, pk=pk)
     if request.method == 'POST':
@@ -305,10 +322,11 @@ def delete_role(request, pk):
         return redirect('role_list')
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
-# Not Found Page
-@login_required
-def not_found(request):
-    return render(request, 'users/404.html')
+""" General-purpose error handler.
+- error_message: Message to display to the user.
+- status: HTTP status code for the error. """
+def error_page(request, error_message, status=400):
+    return render(request, 'main/error.html', {'error_message': error_message}, status=status)
 
 # Notification Handler
 @login_required

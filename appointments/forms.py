@@ -1,12 +1,14 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.utils.timezone import now
+from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication
 from departments.models import Department, Service
 from inventory.models import Medication, Consumable
-from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication
 
 User = get_user_model()
 
 # Appointment Form
+
 class AppointmentForm(forms.ModelForm):
     services = forms.ModelMultipleChoiceField(
         queryset=Service.objects.all(),
@@ -46,6 +48,9 @@ class AppointmentForm(forms.ModelForm):
             department = self.instance.department
             self.fields['doctor'].queryset = department.doctors.filter(roles__name='Doctor', is_active=True)
             self.fields['services'].queryset = department.services.all()
+
+        # Set default date and time
+        self.fields['appointment_date'].initial = now().strftime("%Y-%m-%dT%H:%M")
 
 
 # Add Service Form

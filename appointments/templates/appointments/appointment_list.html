@@ -1,6 +1,7 @@
 {% extends "main/base.html" %}
 {% load static %}
 {% load permissions %}
+{% load role_tags %}
 
 {% block title %}Appointment List | HIMS{% endblock title %}
 
@@ -9,9 +10,9 @@
     
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Appointments List</h2>
-      {% if request.user|has_permission:"add_appointment" %}
+      
         <a href="{% url 'create_appointment' %}" class="btn btn-primary mb-3">Add New Appointment</a>
-    {% endif %}
+    
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
           Filters
       </button>
@@ -80,7 +81,6 @@
                 <th>Patient</th>
                 <th>Doctor</th>
                 <th>Department</th>
-                {% comment %} <th>Services</th> {% endcomment %}
                 <th>Date & Time</th>
                 <th>Type</th>
                 <th>Status</th>
@@ -123,22 +123,22 @@
                         
                         <!-- Action buttons based on status -->
                         {% if appointment.status == "pending" %}
-                            {% if request.user|has_permission:"cancel_appointment" %}
+                            
                                 <a href="{% url 'cancel_appointment' appointment.id %}" 
                                    class="btn btn-danger btn-sm" 
                                    onclick="return confirm('Are you sure you want to cancel this appointment?');">
                                     Cancel
                                 </a>
-                            {% endif %}
+                            
                         {% elif appointment.status == "in_progress" %}
-                            {% if request.user|has_permission:"update_appointment_status" %}
+                        {% if request.user|has_multi_role:"Doctor,Nurse" %}
                                 <a href="{% url 'mark_awaiting_test' appointment.id %}" class="btn btn-warning btn-sm">Awaiting Test</a>
                                 <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success btn-sm">Complete</a>
-                            {% endif %}
+                            
                         {% elif appointment.status == "awaiting_test" %}
-                            {% if request.user|has_permission:"update_appointment_status" %}
+                            
                                 <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success btn-sm">Complete</a>
-                            {% endif %}
+                                {% endif %}
                         {% elif appointment.status == "completed" %}
                             <span class="text-success">Completed</span>
                         {% elif appointment.status == "cancelled" %}

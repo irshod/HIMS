@@ -41,13 +41,15 @@
       <tr>
         <th>Role</th>
         <td>
-          {% for group in user.groups.all %}
-            {{ group.name }}{% if not forloop.last %}, {% endif %}
-          {% empty %}
-            No Role Assigned
-          {% endfor %}
+            {% if roles.exists %}
+                {% for role in roles %}
+                    <span>{{ role.name }}</span>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            {% else %}
+                <span>No Role Assigned</span>
+            {% endif %}
         </td>
-      </tr>
+    </tr>
     </table>
     <a href="{% url 'user_list' %}" class="btn btn-secondary">Back to User List</a>
   </div>

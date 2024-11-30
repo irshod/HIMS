@@ -1,65 +1,80 @@
 {% load static %}
-
+{% load role_tags %}
 <!-- Top Navigation -->
-<nav class="navbar navbar-expand-lg bg-primary fixed-top"> <!-- Navbar fixed at the top for always on top behavior -->
-    <div class="container-fluid">
-        <!-- Logo and Sidebar Toggle Icon -->
-        <div class="d-flex align-items-center">
-            <!-- Sidebar Hide Icon (No Background or Circle) -->
-            <span class="navbar-toggler-icon me-3">
-                <i class="fas fa-bars text-white" id="sidebarCollapse"></i> <!-- Icon without any background -->
-            </span>
-            <a href="{% url 'admin_dashboard' %}" class="text-white">
-                <h1 class="fst-italic me-3 text-white">HIMS</h1>
-            </a>
-        </div>
+<nav class="navbar navbar-expand-lg bg-primary fixed-top">
+  <!-- Navbar fixed at the top for always on top behavior -->
+  <div class="container-fluid">
+    <!-- Logo and Sidebar Toggle Icon -->
+    <div class="d-flex align-items-center">
+      <!-- Sidebar Hide Icon (No Background or Circle) -->
+      <span class="navbar-toggler-icon me-3"><i class="fas fa-bars text-white" id="sidebarCollapse"></i> <!-- Icon without any background --></span>
+      
+      {% if request.user|has_role:'Admin' %}
+      <a href="{% url 'admin_dashboard' %}" class="text-white"><h1 class="fst-italic me-3 text-white">HIMS</h1></a>
+      {% endif %}
 
-        <!-- Centered Search Bar -->
-        <div class="mx-auto" style="width: 50%;"> <!-- Ensure search bar is centered in the navbar -->
-            <form class="d-flex">
-                <input class="form-control me-2" type="search" placeholder="Search Patient/Doctor" aria-label="Search">
-                <button class="btn btn-light" type="submit">Search</button>
-            </form>
-        </div>
-
-        <!-- Right Side of the Navbar -->
-        <div class="d-flex align-items-center justify-content-end">
-            <!-- Fullscreen Toggle -->
-            <li class="nav-item list-unstyled">
-                <a href="#" class="nav-link text-white" id="fullscreenToggle" title="Fullscreen">
-                    <i class="fas fa-expand"></i>
-                </a>
-            </li>
-
-            <!-- Notifications Dropdown -->
-            <li class="nav-item dropdown list-unstyled mx-3">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-bell"></i> 
-                    <span class="badge badge-danger" id="notification-count" style="display: none;"></span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end hims-box-shadow2" aria-labelledby="navbarDropdown">
-                    <li><h5 class="dropdown-header">Notifications</h5></li>
-                    <li id="notification-items">
-                        <!-- Notifications will be dynamically loaded here by JavaScript -->
-                        <a class="dropdown-item text-muted">Loading notifications...</a>
-                    </li>
-                </ul>
-            </li>
-            
-
-            <!-- User Profile Dropdown -->
-            <li class="nav-item dropdown list-unstyled">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-user"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end hims-box-shadow2" aria-labelledby="profileDropdown">
-                    <li><h5 class="dropdown-header">{{ user.get_full_name }}</h5></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle"></i> Help</a></li>
-                    <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </li>
-        </div>
+      {% if request.user|has_role:'Doctor' %}
+      <a href="{% url 'doctor_dashboard' %}" class="text-white"><h1 class="fst-italic me-3 text-white">HIMS</h1></a>
+      {% endif %}
+      {% if request.user|has_role:'Nurse' %}
+      <a href="{% url 'nurse_dashboard' %}" class="text-white"><h1 class="fst-italic me-3 text-white">HIMS</h1></a>
+      {% endif %}
+      {% if request.user|has_role:'Receptionist' %}
+      <a href="{% url 'receptionist_dashboard' %}" class="text-white"><h1 class="fst-italic me-3 text-white">HIMS</h1></a>
+      {% endif %}
     </div>
-</nav>
 
+    <!-- Centered Search Bar -->
+    <div class="mx-auto" style="width: 50%;">
+      <!-- Ensure search bar is centered in the navbar -->
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search Patient/Doctor" aria-label="Search" />
+        <button class="btn btn-light" type="submit">Search</button>
+      </form>
+    </div>
+
+    <!-- Right Side of the Navbar -->
+    <div class="d-flex align-items-center justify-content-end">
+      <!-- Fullscreen Toggle -->
+      <li class="nav-item list-unstyled">
+        <a href="#" class="nav-link text-white" id="fullscreenToggle" title="Fullscreen"><i class="fas fa-expand"></i></a>
+      </li>
+
+      <!-- Notifications Dropdown -->
+      <li class="nav-item dropdown list-unstyled mx-3">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-danger" id="notification-count" style="display: none;"></span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end hims-box-shadow2" aria-labelledby="navbarDropdown">
+          <li>
+            <h5 class="dropdown-header">Notifications</h5>
+          </li>
+          <li id="notification-items">
+            <!-- Notifications will be dynamically loaded here by JavaScript -->
+            <a class="dropdown-item text-muted">Loading notifications...</a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- User Profile Dropdown -->
+      <li class="nav-item dropdown list-unstyled">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user"></i></a>
+        <ul class="dropdown-menu dropdown-menu-end hims-box-shadow2" aria-labelledby="profileDropdown">
+          <li>
+            <h5 class="dropdown-header">{{ user.get_full_name }}</h5>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#"><i class="fas fa-question-circle"></i> Help</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </li>
+        </ul>
+      </li>
+    </div>
+  </div>
+</nav>

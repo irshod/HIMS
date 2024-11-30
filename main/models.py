@@ -51,4 +51,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
-
+    
+    def has_role(self, role_name):
+        return self.roles.filter(name=role_name).exists()

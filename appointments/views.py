@@ -17,11 +17,10 @@ from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from django.utils.timezone import localdate
 from django.db.models import Q
-
+from main.decorators import role_required, role_and_permission_required
 
 # Create Appointment
-@login_required
-@user_passes_test(lambda u: has_permission(u, "add_appointment"))
+@role_required(['Receptionist','Admin'])
 def create_appointment(request):
     service_queryset = Service.objects.none()
 
@@ -69,8 +68,7 @@ def get_doctors_and_services(request):
     return JsonResponse({'doctors': doctors, 'services': services})
 
 # Generate Invoice
-@login_required
-@user_passes_test(lambda u: u.has_perm("appointments.generate_invoice"))
+@role_required(['Receptionist'])
 def generate_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     # Recalculate total cost of services dynamically
@@ -96,8 +94,7 @@ def generate_invoice(request, appointment_id):
     })
 
 # Process Payment
-@login_required
-@user_passes_test(lambda u: u.has_perm("appointments.add_payment"))
+@role_required(['Receptionist'])
 def process_payment(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.method == 'POST':
@@ -151,7 +148,7 @@ def process_payment(request, invoice_id):
     return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
 # PDF Invoice
-@login_required
+@role_required(['Receptionist','Admin'])
 def generate_pdf_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
@@ -182,12 +179,18 @@ def generate_pdf_invoice(request, appointment_id):
     return response
 
 # View to list all appointments
-@login_required
-@user_passes_test(lambda u: has_permission(u, "view_appointment"))
+@role_required(['Doctor', 'Nurse', 'Receptionist', 'Admin'])
 def appointments_list(request):
     query = Q()
 
-    # Filters
+    # Filters based on user role
+    if request.user.roles.filter(name='Doctor').exists():
+        query &= Q(doctor=request.user)
+    elif request.user.roles.filter(name='Nurse').exists():
+        # You can add logic for nurses if needed, e.g., filter by department or assigned doctors
+        pass
+
+    # Additional filters from the request
     patient_name = request.GET.get('patient_name', '').strip()
     doctor_name = request.GET.get('doctor_name', '').strip()
     department_id = request.GET.get('department')
@@ -195,7 +198,7 @@ def appointments_list(request):
     date_after = request.GET.get('date_after')
     date_before = request.GET.get('date_before')
 
-    # Apply filters
+    # Apply the filters
     if patient_name:
         query &= Q(patient__first_name__icontains=patient_name) | Q(patient__last_name__icontains=patient_name)
 
@@ -236,8 +239,7 @@ def appointments_list(request):
     return render(request, 'appointments/appointment_list.html', context)
 
 
-
-@login_required
+@role_required(['Doctor','Nurse','Receptionist'])
 def view_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
@@ -274,8 +276,7 @@ def view_appointment(request, appointment_id):
     })
 
 # Update status to in-progress (doctor starts the appointment)
-@login_required
-@user_passes_test(lambda u: has_permission(u, "update_appointment_status"))
+@role_required(['Doctor','Nurse'])
 def start_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     appointment.status = 'in_progress'
@@ -284,8 +285,7 @@ def start_appointment(request, appointment_id):
     return redirect('view_appointment', appointment_id=appointment.id)
 
 # Update status to awaiting test (doctor orders a test)
-@login_required
-@user_passes_test(lambda u: has_permission(u, "update_appointment_status"))
+@role_required(['Doctor','Nurse'])
 def mark_awaiting_test(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     appointment.status = 'awaiting_test'
@@ -294,8 +294,7 @@ def mark_awaiting_test(request, appointment_id):
     return redirect('view_appointment', appointment_id=appointment.id)
 
 # Update status to completed (doctor finishes the appointment)
-@login_required
-@user_passes_test(lambda u: has_permission(u, "update_appointment_status"))
+@role_required(['Doctor','Nurse'])
 def complete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     appointment.status = 'completed'
@@ -304,8 +303,7 @@ def complete_appointment(request, appointment_id):
     return redirect('view_appointment', appointment_id=appointment.id)
 
 # Cancel an appointment (no delete functionality)
-@login_required
-@user_passes_test(lambda u: u.has_perm('appointments.cancel_appointment'))  
+@role_required(['Receptionist'])
 def cancel_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     if appointment.status == 'pending':
@@ -317,8 +315,7 @@ def cancel_appointment(request, appointment_id):
     return redirect('appointments_list')
 
 # Calendar view showing appointment availability
-@login_required
-@user_passes_test(lambda u: has_permission(u, "view_calendar"))
+@role_required(['Receptionist','Admin','Doctor','Nurse'])
 def calendar_view(request):
     departments = Department.objects.all()
     doctors = CustomUser.objects.filter(roles__name='Doctor')  # Filter only doctors

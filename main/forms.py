@@ -3,7 +3,6 @@ from django.contrib.auth.models import Permission
 from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
 from .models import CustomUser, Role
 
-from .models import Role  # Use custom Role model
 
 class RoleCreationForm(forms.ModelForm):
     permissions = forms.ModelMultipleChoiceField(

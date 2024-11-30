@@ -1,117 +1,120 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load static %}
+{% load role_tags %}
 {% load permissions %}
 
-{% block title %}Patient List | HIMS{% endblock title %}
+{% block title %}
+  Patient List | HIMS
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+  <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Patient List</h1>
-        {% if request.user|has_permission:"add_patient" %}
-        <a href="{% url 'add_patient' %}" class="btn btn-primary mb-3">Add New Patient</a>
-    {% endif %}
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
-            Filters
-        </button>
+      <h1>Patient List</h1>
+      {% if request.user|has_permission:'add_patient' %}
+        {% if request.user|has_multi_role:'Receptionist,Doctor,Nurse' %}
+          <a href="{% url 'add_patient' %}" class="btn btn-primary mb-3">Add New Patient</a>
+        {% endif %}
+      {% endif %}
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">Filters</button>
     </div>
 
     <!-- Filters -->
     <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterModalLabel">Filters</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="filterModalLabel">Filters</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="get" id="filterForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="search" class="form-label">Search Name</label>
+                  <input type="text" name="search" id="search" class="form-control" value="{{ search }}" placeholder="Enter name" />
                 </div>
-                <div class="modal-body">
-                    <form method="get" id="filterForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="search" class="form-label">Search Name</label>
-                                <input type="text" name="search" id="search" class="form-control" value="{{ search }}" placeholder="Enter name">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="age_min" class="form-label">Min Age</label>
-                                <input type="number" name="age_min" id="age_min" class="form-control" value="{{ age_min }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="age_max" class="form-label">Max Age</label>
-                                <input type="number" name="age_max" id="age_max" class="form-control" value="{{ age_max }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="created_after" class="form-label">Created After</label>
-                                <input type="date" name="created_after" id="created_after" class="form-control" value="{{ created_after }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="created_before" class="form-label">Created Before</label>
-                                <input type="date" name="created_before" id="created_before" class="form-control" value="{{ created_before }}">
-                            </div>
-                        </div>
-                    </form>
+                <div class="col-md-3">
+                  <label for="age_min" class="form-label">Min Age</label>
+                  <input type="number" name="age_min" id="age_min" class="form-control" value="{{ age_min }}" />
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" form="filterForm">Apply Filters</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="col-md-3">
+                  <label for="age_max" class="form-label">Max Age</label>
+                  <input type="number" name="age_max" id="age_max" class="form-control" value="{{ age_max }}" />
                 </div>
-            </div>
+                <div class="col-md-6">
+                  <label for="created_after" class="form-label">Created After</label>
+                  <input type="date" name="created_after" id="created_after" class="form-control" value="{{ created_after }}" />
+                </div>
+                <div class="col-md-6">
+                  <label for="created_before" class="form-label">Created Before</label>
+                  <input type="date" name="created_before" id="created_before" class="form-control" value="{{ created_before }}" />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" form="filterForm">Apply Filters</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Patient Table --><table class="table table-bordered mt-3">
-    <thead>
+    <!-- Patient Table -->
+    <table class="table table-bordered mt-3">
+      <thead>
         <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Contact Number</th>
-            <th>Age</th>
-            <th>Created At</th>
-            <th>Actions</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Contact Number</th>
+          <th>Age</th>
+          <th>Created At</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for patient in patients %}
-        <tr>
+          <tr>
             <td>{{ patient.first_name }}</td>
             <td>{{ patient.last_name }}</td>
             <td>{{ patient.contact_number }}</td>
-            <td>{{ patient.date_of_birth|date:"Y-m-d" }}</td>
-            <td>{{ patient.created_at|date:"Y-m-d" }}</td>
+            <td>{{ patient.date_of_birth|date:'Y-m-d' }}</td>
+            <td>{{ patient.created_at|date:'Y-m-d' }}</td>
             <td>
-                <a href="{% url 'patient_profile' patient.id %}" class="btn btn-info btn-sm">View Profile</a>
-                {% if request.user|has_permission:"edit_patient" %}
-                    <a href="{% url 'edit_patient' patient.id %}" class="btn btn-warning btn-sm">Edit</a>
-                {% endif %}
+              <a href="{% url 'patient_profile' patient.id %}" class="btn btn-info btn-sm">View Profile</a>
+             
+                <a href="{% url 'edit_patient' patient.id %}" class="btn btn-warning btn-sm">Edit</a>
+     
             </td>
-        </tr>
+          </tr>
         {% empty %}
-        <tr>
+          <tr>
             <td colspan="6" class="text-center">No patients found.</td>
-        </tr>
+          </tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
 
-    
     <!-- Pagination -->
     <nav>
-        <ul class="pagination justify-content-center">
-            {% if patients.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ patients.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
-                </li>
-            {% endif %}
-            {% for num in patients.paginator.page_range %}
-                <li class="page-item {% if patients.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
-                </li>
-            {% endfor %}
-            {% if patients.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ patients.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
-                </li>
-            {% endif %}
-        </ul>
+      <ul class="pagination justify-content-center">
+        {% if patients.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ patients.previous_page_number }}&{{ request.GET.urlencode }}">Previous</a>
+          </li>
+        {% endif %}
+        {% for num in patients.paginator.page_range %}
+          <li class="page-item {% if patients.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+          </li>
+        {% endfor %}
+        {% if patients.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ patients.next_page_number }}&{{ request.GET.urlencode }}">Next</a>
+          </li>
+        {% endif %}
+      </ul>
     </nav>
-</div>
-{% endblock content %}
+  </div>
+{% endblock %}

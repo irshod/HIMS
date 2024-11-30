@@ -1,25 +1,32 @@
 {% load static %}
-
+{% load role_tags %}
+{% load permissions %}
 <!-- Sidebar -->
 <nav id="sidebar" class="hims-bg">
   <ul class="list-unstyled components">
-    <li class="active">
-      <a href="#" data-bs-toggle="collapse" aria-expanded="true"><span class="fas fa-home"></span> Dashboard</a>
-    </li>
-    
+    {% if request.user|has_role:"Admin" %}
+      <li>
+        <a href="{% url 'admin_dashboard' %}"><span class="fas fa-home"></span>Dashboard</a>
+      </li>
+    {% endif %}
+
+    {% if request.user|has_role:"Doctor" %}
+      <li>
+        <a href="{% url 'doctor_dashboard' %}"><span class="fas fa-home"></span>Dashboard</a>
+      </li>
+    {% endif %}
+    {% if request.user|has_role:"Nurse" %}
     <li>
-      <a href="{% url 'admin_dashboard' %}"><span class="fas fa-list"></span>admin_dashboard</a>
+      <a href="{% url 'nurse_dashboard' %}"><span class="fas fa-home"></span>Dashboard</a>
     </li>
+    {% endif %}
+    {% if request.user|has_role:"Receptionist" %}
     <li>
-      <a href="{% url 'doctor_dashboard' %}"><span class="fas fa-list"></span>doctor_dashboard</a>
+      <a href="{% url 'receptionist_dashboard' %}"><span class="fas fa-home"></span>Dashboard</a>
     </li>
-    <li>
-      <a href="{% url 'nurse_dashboard' %}"><span class="fas fa-list"></span>nurse_dashboard</a>
-    </li>
-    <li>
-      <a href="{% url 'receptionist_dashboard' %}"><span class="fas fa-list"></span>receptionist_dashboard</a>
-    </li>
+    {% endif %}
     <!-- Patient Section -->
+    {% if request.user|has_multi_role:"Receptionist,Doctor,Nurse,Admin" %}
     <li>
       <a href="#patientSubmenu" data-toggle="collapse" aria-expanded="false">
         <span class="fas fa-user-injured"></span> Patients
@@ -29,13 +36,16 @@
         <li>
           <a href="{% url 'patient_list' %}"><span class="fas fa-list"></span> All Patients</a>
         </li>
+        {% if request.user|has_role:"Receptionist,Doctor,Nurse" %}
         <li>
           <a href="{% url 'add_patient' %}"><span class="fas fa-plus-circle"></span> Add Patient</a>
         </li>
+        {% endif %}
       </ul>
     </li>
-
+    {% endif %}
     <!-- Appointment Section -->
+    {% if request.user|has_multi_role:"Receptionist,Doctor,Nurse,Admin" %}
     <li>
       <a href="#appointmentSubmenu" data-toggle="collapse" aria-expanded="false">
         <span class="fas fa-calendar-alt"></span> Appointments
@@ -53,8 +63,9 @@
         </li>
       </ul>
     </li>
-
+    {% endif %}
     <!-- Finance Section -->
+    {% if request.user|has_multi_role:"Admin" %}
     <li>
       <a href="#nav-finance" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-money-bill-alt"></span> Finance
@@ -72,7 +83,9 @@
         </li>
       </ul>
     </li>
+    {% endif %}
     <!-- Inventory Section -->
+    {% if request.user|has_role:"Admin" %}
     <li>
       <a href="#nav-inventory" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-money-bill-alt"></span> Inventory
@@ -87,7 +100,9 @@
         </li>
       </ul>
     </li>
+    {% endif %}
     <!-- Room Management Section -->
+    {% if request.user|has_multi_role:"Doctor,Nurse,Admin" %}
     <li>
       <a href="#nav-rooms" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-bed"></span> Room Management
@@ -105,8 +120,9 @@
         </li>
       </ul>
     </li>
-
+    {% endif %}
     <!-- Departments Section -->
+    {% if request.user|has_role:"Admin" %}
     <li>
       <a href="#nav-departments" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-building"></span> Departments
@@ -127,8 +143,10 @@
         </li>
       </ul>
     </li>
+    {% endif %}
 
     <!-- User Management Section -->
+     {% if request.user|has_role:"Admin" %}
     <li>
       <a href="#nav-roles" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-users-cog"></span> User Management
@@ -149,8 +167,10 @@
         </li>
       </ul>
     </li>
+    {% endif %}
 
     <!-- Settings Section -->
+    {% if request.user|has_role:"Admin" %}
     <li>
       <a href="#nav-pages" data-bs-toggle="collapse" aria-expanded="false">
         <span class="fas fa-cog"></span> Settings
@@ -160,33 +180,20 @@
         <li>
           <a href="#"><span class="fas fa-user-cog"></span> Edit Profile</a>
         </li>
-        <li>
-          <a href="#"><span class="fas fa-exclamation-triangle"></span> 404</a>
-        </li>
-        <li>
-          <a href="#"><span class="fas fa-file-alt"></span> Blank Page</a>
-        </li>
-        <li>
-          <a href="#"><span class="fas fa-tags"></span> Pricing</a>
-        </li>
+        
         <li>
           <a href="#"><span class="fas fa-database"></span> Backup</a>
         </li>
-        <li>
-          <a href="#"><span class="fas fa-file-invoice-dollar"></span> Invoice</a>
-        </li>
-        <li>
-          <a href="#"><span class="fas fa-hourglass-half"></span> Coming Soon</a>
-        </li>
       </ul>
     </li>
+    {% endif %}
   </ul>
 
   <!-- Sidebar Help Section -->
-  <div class="sidebar-help animated fadeIn">
+  {% comment %} <div class="sidebar-help animated fadeIn">
     <h5><span class="fas fa-comments"></span> Need Help</h5>
     <h6><span class="fas fa-mobile-alt"></span> +992 92 764 11 17</h6>
     <h6><span class="fas fa-envelope"></span> mkoziev@na.edu</h6>
-  </div>
+  </div> {% endcomment %}
 </nav>
 <!-- /Sidebar -->
