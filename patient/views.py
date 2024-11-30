@@ -180,7 +180,7 @@ def add_insurance(request, patient_id):
             insurance.patient = patient
             insurance.save()
             messages.success(request, "Insurance details added successfully.")
-            return redirect('view_patient_profile', patient_id=patient.id)
+            return redirect('patient_profile', patient_id=patient.id)
     else:
         form = PatientInsuranceForm()
 
