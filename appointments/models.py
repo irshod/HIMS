@@ -105,7 +105,7 @@ class IPDAdmission(BaseContext):
 
     floor = models.ForeignKey('departments.Floor', on_delete=models.SET_NULL, null=True, blank=True)
     room = models.ForeignKey('departments.Room', on_delete=models.SET_NULL, null=True, blank=True)
-    bed = models.OneToOneField('departments.Bed', on_delete=models.SET_NULL, null=True, blank=True)
+    bed = models.ForeignKey('departments.Bed', on_delete=models.SET_NULL, null=True, blank=True, related_name='admissions')
     admission_date = models.DateTimeField(auto_now_add=True)
     discharge_date = models.DateTimeField(null=True, blank=True)
     STATUS_CHOICES = [
@@ -120,13 +120,19 @@ class IPDAdmission(BaseContext):
     )
 
     def mark_as_discharged(self):
-        """Mark the admission as discharged."""
         if self.status == 'admitted':
             self.status = 'discharged'
             self.discharge_date = now()
+
+            if self.bed:
+                self.bed.status = 'available'
+                self.bed.current_patient = None
+                self.bed.save()
+
             self.save(update_fields=['status', 'discharge_date'])
         else:
-            raise ValidationError("Patient is already discharged.")
+            raise ValidationError("The patient is already discharged.")
+
 
     def __str__(self):
         return f"IPD Admission for {self.patient.first_name} {self.patient.last_name} in {self.room} on Floor {self.floor}"

@@ -17,6 +17,7 @@ from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from django.utils.timezone import localdate
 from django.db.models import Q
+from django.db import transaction
 from main.decorators import role_required, role_and_permission_required
 
 # Create Appointment
@@ -91,46 +92,37 @@ def get_rooms(request):
 
 def get_beds(request):
     room_id = request.GET.get("room_id")
-    beds = Bed.objects.filter(room_id=room_id)
+    beds = Bed.objects.filter(room_id=room_id, status='available')
     data = [{"id": bed.id, "bed_number": bed.bed_number, "status": bed.status} for bed in beds]
     return JsonResponse(data, safe=False)
 
+
 @login_required
+@transaction.atomic
 def admit_patient(request):
     if request.method == 'POST':
         form = IPDAdmissionForm(request.POST)
         if form.is_valid():
             admission = form.save(commit=False)
             bed = form.cleaned_data['bed']
-            patient = form.cleaned_data['patient']
-
-            # Check if the patient is already assigned to a bed
-            existing_bed = Bed.objects.filter(current_patient=patient).first()
-            if existing_bed:
-                messages.error(request, f"Patient {patient.first_name} {patient.last_name} is already assigned to Bed {existing_bed.bed_number} in Room {existing_bed.room.name}.")
-                return redirect('admit_patient')
-
-            # Assign patient to the selected bed and mark it as occupied
+            
             if bed.status != 'available':
                 messages.error(request, "The selected bed is not available.")
                 return redirect('admit_patient')
 
+            # Assign bed to patient and mark it as occupied
+            bed.mark_as_occupied()
             admission.bed = bed
             admission.save()
 
-            bed.current_patient = patient
-            bed.status = 'occupied'
-            bed.save()
-
-            messages.success(request, f"Patient {patient.first_name} {patient.last_name} successfully admitted.")
+            messages.success(request, f"Patient {admission.patient.first_name} admitted successfully.")
             return redirect('ipd_admissions_list')
     else:
         form = IPDAdmissionForm()
 
     return render(request, 'admissions/admit_patient.html', {'form': form})
 
-
-
+@login_required
 @login_required
 def discharge_patient(request, admission_id):
     admission = get_object_or_404(IPDAdmission, id=admission_id)
@@ -140,20 +132,29 @@ def discharge_patient(request, admission_id):
             discharge = form.save(commit=False)
             discharge.status = 'discharged'
             discharge.save(update_fields=['discharge_date', 'status'])
+            
             if admission.bed:
-                admission.bed.status = 'available'  # Mark the bed as available
-                admission.bed.save()
-            messages.success(request, f"Patient {admission.patient.first_name} {admission.patient.last_name} discharged successfully.")
-            return redirect('admissions_list')
+                admission.bed.mark_as_available()  # Mark the bed as available
+            
+            messages.success(request, f"Patient {admission.patient.first_name} discharged successfully.")
+            return redirect('ipd_admissions_list')
     else:
         form = IPDDischargeForm(instance=admission)
-    return render(request, 'discharge_patient.html', {'form': form, 'admission': admission})
+    return render(request, 'admissions/discharge_patient.html', {'form': form, 'admission': admission})
 
 
 def ipd_admissions_list(request):
+    query = Q()  # Initialize an empty query
+
+    # Apply filters from the request
+    status = request.GET.get('status')  # Get the status filter from the request
+    if status in dict(IPDAdmission.STATUS_CHOICES):  # Validate the status value
+        query &= Q(status=status)
+
+    # Fetch filtered admissions
     admissions = IPDAdmission.objects.select_related(
         'patient', 'doctor', 'department', 'room', 'floor'
-    ).filter(status='admitted')
+    ).filter(query).order_by('-admission_date')
 
     paginator = Paginator(admissions, 10)  # Paginate results
     page_number = request.GET.get('page')
@@ -162,6 +163,7 @@ def ipd_admissions_list(request):
     context = {
         'page_obj': page_obj,
         'departments': Department.objects.all(),  # For filtering
+        'status_choices': IPDAdmission.STATUS_CHOICES,  # Pass status choices to the template
     }
     return render(request, 'admissions/admissions_list.html', context)
 
@@ -603,14 +605,11 @@ def add_consumable_to_treatment(request, appointment_id):
     if request.method == 'POST':
         form = AddConsumableForm(request.POST)
         if form.is_valid():
-            consumable = form.save(commit=False)
-            consumable.appointment = appointment
-            consumable.save()
+            consumable = form.save(appointment)
 
             # Update invoice total if consumable has a price
-            if invoice:
-                invoice.total_amount += consumable.price * consumable.quantity
-                invoice.save()
+            invoice.total_amount += consumable.total_cost
+            invoice.save()
 
             messages.success(request, "Consumable added successfully.")
             return redirect('view_appointment', appointment_id=appointment_id)
@@ -621,6 +620,7 @@ def add_consumable_to_treatment(request, appointment_id):
         'form': form,
         'appointment': appointment,
     })
+
 
 def generate_medical_report(request, appointment_id):
     # Fetch appointment

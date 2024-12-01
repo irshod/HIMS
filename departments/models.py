@@ -122,11 +122,13 @@ class Bed(models.Model):
     class Meta:
         unique_together = ('room', 'bed_number')
 
+    def mark_as_occupied(self):
+        self.status = 'occupied'
+        self.save(update_fields=['status'])
 
-    def clean(self):
-        """Ensure patients can only be assigned through the Admit Patient view."""
-        if self.current_patient and self.status != 'occupied':
-            raise ValidationError("Patients can only be assigned through the Admit Patient process.")
+    def mark_as_available(self):
+        self.status = 'available'
+        self.save(update_fields=['status'])
 
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving

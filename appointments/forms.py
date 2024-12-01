@@ -1,8 +1,9 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
-from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication, IPDAdmission
-from departments.models import Bed, Department, Room, Service
+from .models import Appointment, Invoice, Payment, TreatmentConsumable, TreatmentHistory, Medication, IPDAdmission
+from departments.models import Bed, Department, Floor, Room, Service
 from inventory.models import Medication, Consumable
 
 User = get_user_model()
@@ -69,15 +70,26 @@ class IPDAdmissionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter beds based on availability
         self.fields['bed'].queryset = Bed.objects.filter(status='available')
-
         # Filter rooms dynamically based on floor (optional)
         if 'room' in self.fields:
             self.fields['room'].queryset = Room.objects.all()
-
         # Pre-select status (e.g., "admitted")
         self.fields['status'].initial = 'admitted'
+        department = kwargs.get('initial', {}).get('department')
+        if department:
+            self.fields['floor'].queryset = Floor.objects.filter(department=department)
+            self.fields['room'].queryset = Room.objects.filter(floor__department=department)
+            self.fields['bed'].queryset = Bed.objects.filter(room__floor__department=department, status='available')
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        bed = cleaned_data.get('bed')
 
-    
+        if bed and IPDAdmission.objects.filter(bed=bed, status='admitted').exists():
+            raise ValidationError({'bed': 'This bed is already assigned to an admitted patient.'})
+
+        return cleaned_data
+
 class IPDDischargeForm(forms.ModelForm):
     class Meta:
         model = IPDAdmission
@@ -128,12 +140,7 @@ class AddMedicationForm(forms.Form):
         }
 
 
-
-
-# Add Consumable Form
 class AddConsumableForm(forms.Form):
-    class Meta:
-        model = Consumable
     consumable = forms.ModelChoiceField(
         queryset=Consumable.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'}),
@@ -144,6 +151,27 @@ class AddConsumableForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'form-control'}),
         label="Quantity"
     )
+
+    def save(self, appointment):
+        consumable = self.cleaned_data['consumable']
+        quantity = self.cleaned_data['quantity']
+
+        # Deduct stock from inventory
+        if consumable.quantity < quantity:
+            raise ValidationError(f"Not enough stock for {consumable.name}. Available: {consumable.quantity}")
+        consumable.quantity -= quantity
+        consumable.save()
+
+        # Create a TreatmentConsumable entry
+        treatment_history, _ = TreatmentHistory.objects.get_or_create(appointment=appointment)
+        treatment_consumable = TreatmentConsumable.objects.create(
+            treatment_history=treatment_history,
+            consumable=consumable,
+            quantity=quantity,
+            total_cost=consumable.unit_price * quantity
+        )
+        return treatment_consumable
+
 
 
 # Treatment History Form
