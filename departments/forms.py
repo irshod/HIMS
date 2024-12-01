@@ -81,23 +81,22 @@ class RoomForm(forms.ModelForm):
 
 
 class BedForm(forms.ModelForm):
-    # Remove `current_patient` from the form fields
     class Meta:
         model = Bed
-        fields = ['bed_number', 'room', 'status']
+        fields = ['bed_number', 'room', 'status', 'price'] 
         widgets = {
             'bed_number': forms.TextInput(attrs={'placeholder': 'Enter Bed Number'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'placeholder': 'Enter Bed Price', 'class': 'form-control'}),  
         }
         labels = {
             'bed_number': 'Bed Number',
             'room': 'Room',
             'status': 'Status',
+            'price': 'Price', 
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter room options dynamically based on floor or other logic if needed
         if 'room' in self.fields:
             self.fields['room'].queryset = Room.objects.all()
-

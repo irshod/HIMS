@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication, IPDAdmission
-from departments.models import Department, Service
+from departments.models import Bed, Department, Room, Service
 from inventory.models import Medication, Consumable
 
 User = get_user_model()
@@ -54,12 +54,29 @@ class IPDAdmissionForm(forms.ModelForm):
     class Meta:
         model = IPDAdmission
         fields = ['patient', 'department', 'doctor', 'floor', 'room', 'bed', 'status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'bed': forms.Select(attrs={'class': 'form-control'}),
+            'room': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'status': 'Status',
+            'bed': 'Bed',
+            'room': 'Room',
+        }
 
-    def clean_bed(self):
-        bed = self.cleaned_data.get('bed')
-        if bed and bed.status != 'available':
-            raise forms.ValidationError("The selected bed is not available.")
-        return bed
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter beds based on availability
+        self.fields['bed'].queryset = Bed.objects.filter(status='available')
+
+        # Filter rooms dynamically based on floor (optional)
+        if 'room' in self.fields:
+            self.fields['room'].queryset = Room.objects.all()
+
+        # Pre-select status (e.g., "admitted")
+        self.fields['status'].initial = 'admitted'
+
     
 class IPDDischargeForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,46 @@
+{% extends "main/base.html" %}
+{% block title %}View Admission | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="widget-title">View Admission Details</h3>
+    <table class="table">
+        <tr>
+            <th>Patient</th>
+            <td>{{ admission.patient }}</td>
+        </tr>
+        <tr>
+            <th>Doctor</th>
+            <td>{{ admission.doctor }}</td>
+        </tr>
+        <tr>
+            <th>Department</th>
+            <td>{{ admission.department }}</td>
+        </tr>
+        <tr>
+            <th>Floor</th>
+            <td>{{ admission.floor }}</td>
+        </tr>
+        <tr>
+            <th>Room</th>
+            <td>{{ admission.room }}</td>
+        </tr>
+        <tr>
+            <th>Bed</th>
+            <td>{{ admission.bed }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{ admission.get_status_display }}</td>
+        </tr>
+        <tr>
+            <th>Admission Date</th>
+            <td>{{ admission.admission_date }}</td>
+        </tr>
+            <th>Discharge Date</th>
+            <td>{{ admission.discharge_date|default:"N/A" }}</td>
+        </tr>
+    </table>
+    <a href="{% url 'ipd_admissions_list' %}" class="btn btn-secondary">Back to Admissions</a>
+</div>
+{% endblock content %}

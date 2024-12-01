@@ -8,16 +8,13 @@
     <h3 class="widget-title">Admit Patient to IPD</h3>
     <form method="post" id="admitPatientForm">
         {% csrf_token %}
-
-        <!-- Patient Selection -->
         <div class="form-row">
             <div class="form-group col-md-6">
                 {{ form.patient.label_tag }}
                 {{ form.patient }}
             </div>
         </div>
-
-        <!-- Department and Doctor Selection -->
+        <!-- Department and Doctor -->
         <div class="form-row">
             <div class="form-group col-md-4">
                 <label for="id_department">Department</label>
@@ -30,6 +27,7 @@
                 </select>
             </div>
         </div>
+        <!-- Floor, Room, and Bed -->
         <div class="form-row">
             <div class="form-group col-md-4">
                 <label for="id_floor">Floor</label>
@@ -47,19 +45,31 @@
                     <option value="">Select a room first</option>
                 </select>
             </div>
-        </div>
-        
-
-        <!-- Admission Status -->
-        <div class="form-row">
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-4">
                 {{ form.status.label_tag }}
                 {{ form.status }}
             </div>
         </div>
-
         <button type="submit" class="btn btn-primary">Admit Patient</button>
         <a href="{% url 'ipd_admissions_list' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <a class="close" href="#" data-dismiss="alert">×</a>
+            <strong>There were errors with your submission:</strong>
+            <ul>
+                {% for field_name, errors in form.errors.items %}
+                    <li>
+                        <strong>{{ form.fields.field_name.label|default:field_name }}:</strong>
+                        <ul>
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </form>    
 </div>
 {% endblock content %}

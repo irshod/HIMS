@@ -45,38 +45,6 @@ def logout_view(request):
     messages.success(request, "You have successfully logged out.")
     return redirect('login')
 
-# @login_required
-# def dashboard_view(request):
-#     total_patients = Patient.objects.count()
-#     total_appointments = Appointment.objects.filter(appointment_date__month=timezone.now().month).count()
-#     unpaid_invoices = Invoice.objects.filter(total_amount__gt=0, payments__isnull=True).count()
-
-
-#     total_doctors = DoctorProfile.objects.count()
-
-#     # Example recent activity data
-#     recent_activities = [
-#         {"timestamp": p.created_at, "message": f"New patient registered: {p.first_name} {p.last_name}"}
-#         for p in Patient.objects.order_by("-created_at")[:5]
-#     ] + [
-#         {"timestamp": a.created_at, "message": f"Appointment scheduled for Dr. {a.doctor}"}
-#         for a in Appointment.objects.order_by("-created_at")[:5]
-#     ] + [
-#         {"timestamp": i.created_at, "message": f"Invoice #{i.id} marked as {'Paid' if i.payments.exists() else 'Unpaid'}"}
-#         for i in Invoice.objects.order_by("-created_at")[:5]
-#     ]
-
-#     # Sort recent activities by timestamp
-#     recent_activities = sorted(recent_activities, key=lambda x: x['timestamp'], reverse=True)[:10]
-
-#     return render(request, 'main/dashboard.html', {
-#         'total_patients': total_patients,
-#         'total_appointments': total_appointments,
-#         'unpaid_invoices': unpaid_invoices,
-#         'total_doctors': total_doctors,
-#         'recent_activities': recent_activities,
-#     })
-
 @role_required(['Admin'])
 def admin_dashboard(request):
     if not request.user.roles.filter(name='Admin').exists():
@@ -185,7 +153,7 @@ def receptionist_dashboard(request):
     recent_activities = Appointment.objects.order_by('-updated_at')[:5]
     todays_patients = Appointment.objects.filter(appointment_date__date=now().date()).select_related('patient', 'doctor')
     today_appointments = Appointment.objects.filter(appointment_date__date=now().date()).count()
-    unregistered_patients = Patient.objects.filter(appointments=None).count()
+    unregistered_patients = Patient.objects.filter(appointment_related=None).count()  # Fixed this line
 
     context = {
         'total_patients': total_patients,

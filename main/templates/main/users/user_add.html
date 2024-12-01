@@ -30,26 +30,23 @@
             </div>
 
             {% if form.errors %}
-    <div class="alert alert-danger">
-        <a class="close" href="#" data-dismiss="alert">×</a>
-        <strong>There were errors with your submission:</strong>
-        <ul>
-            {% for field, errors in form.errors.items %}
-                <li>
-                    <strong>{{ field.label }}:</strong>
-                    <ul>
+              <div class="alert alert-danger">
+                <a class="close" href="#" data-dismiss="alert">×</a>
+                <strong>There were errors with your submission:</strong>
+                <ul>
+                  {% for field, errors in form.errors.items %}
+                    <li>
+                      <strong>{{ field.label }}:</strong>
+                      <ul>
                         {% for error in errors %}
-                            <li>{{ error }}</li>
+                          <li>{{ error }}</li>
                         {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endif %}
-
-
-
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
           </form>
         </div>
       </div>

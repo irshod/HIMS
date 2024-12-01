@@ -118,7 +118,7 @@ class Bed(models.Model):
         blank=True,
         related_name='bed'
     )
-
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     class Meta:
         unique_together = ('room', 'bed_number')
 
@@ -133,6 +133,6 @@ class Bed(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Bed {self.bed_number} in Room {self.room.name} ({self.get_status_display()})"
+        return f"Bed {self.bed_number} in Room {self.room.name} ({self.get_status_display()}) - Price: {self.price}"
 
 

@@ -19,6 +19,7 @@ urlpatterns = [
     path('ipd/admit/', views.admit_patient, name='admit_patient'),
     path('ipd/discharge/<int:admission_id>/', views.discharge_patient, name='discharge_patient'),
     path('ipd/admissions/', views.ipd_admissions_list, name='ipd_admissions_list'),
+    path('ipd/admission/<int:admission_id>/', views.view_admission, name='view_admission'),
     
     # Invoice and Payment Management
     path('appointments/<int:appointment_id>/generate_invoice/', views.generate_invoice, name='generate_invoice'),

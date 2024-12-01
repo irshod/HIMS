@@ -346,76 +346,60 @@
             });
         }
     });
+    document.addEventListener("DOMContentLoaded", function () {
+        const departmentSelect = document.getElementById("id_department");
+        const doctorSelect = document.getElementById("id_doctor");
+        const floorSelect = document.getElementById("id_floor");
+        const roomSelect = document.getElementById("id_room");
+        const bedSelect = document.getElementById("id_bed");
     
-    
-
-    function printInvoice() {
-        const pdfUrl = generatePdfInvoiceURL; // Dynamically passed from the template
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = pdfUrl;
-        document.body.appendChild(iframe);
-        iframe.onload = function () {
-            iframe.contentWindow.print();
-            setTimeout(() => document.body.removeChild(iframe), 1000);
-        };
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const floorSelect = document.getElementById('id_floor');
-        const roomSelect = document.getElementById('id_room');
-        const bedSelect = document.getElementById('id_bed');
-    
-        // Populate rooms based on floor
-        if (floorSelect && roomSelect) {
-            floorSelect.addEventListener('change', function () {
-                const floorId = this.value;
-    
-                // Reset dependent fields
-                roomSelect.innerHTML = '<option value="">Select a floor first</option>';
-                bedSelect.innerHTML = '<option value="">Select a room first</option>';
-    
-                if (!floorId) return;
-    
-                fetch(`/departments/get_rooms/?floor_id=${floorId}`)
+        departmentSelect.addEventListener("change", function () {
+            const departmentId = this.value;
+            if (departmentId) {
+                fetch(`/appointments/get_doctors/?department_id=${departmentId}`)
                     .then(response => response.json())
                     .then(data => {
-                        roomSelect.innerHTML = '<option value="">Select a room</option>';
-                        data.rooms.forEach(room => {
-                            const option = document.createElement('option');
-                            option.value = room.id;
-                            option.textContent = `Room ${room.room_number}`;
-                            roomSelect.appendChild(option);
+                        doctorSelect.innerHTML = `<option value="">Select a doctor</option>`;
+                        data.forEach(doctor => {
+                            doctorSelect.innerHTML += `<option value="${doctor.id}">${doctor.first_name} ${doctor.last_name}</option>`;
                         });
-                    })
-                    .catch(error => console.error('Error fetching rooms:', error));
-            });
-        }
+                    });
+            } else {
+                doctorSelect.innerHTML = `<option value="">Select a department first</option>`;
+            }
+        });
     
-        // Populate beds based on room
-        if (roomSelect && bedSelect) {
-            roomSelect.addEventListener('change', function () {
-                const roomId = this.value;
-    
-                // Reset bed field
-                bedSelect.innerHTML = '<option value="">Select a room first</option>';
-    
-                if (!roomId) return;
-    
-                fetch(`/departments/get_beds/?room_id=${roomId}`)
+        floorSelect.addEventListener("change", function () {
+            const floorId = this.value;
+            if (floorId) {
+                fetch(`/appointments/get_rooms/?floor_id=${floorId}`)
                     .then(response => response.json())
                     .then(data => {
-                        bedSelect.innerHTML = '<option value="">Select a bed</option>';
-                        data.beds.forEach(bed => {
-                            const option = document.createElement('option');
-                            option.value = bed.id;
-                            option.textContent = `Bed ${bed.bed_number}`;
-                            bedSelect.appendChild(option);
+                        roomSelect.innerHTML = `<option value="">Select a room</option>`;
+                        data.forEach(room => {
+                            roomSelect.innerHTML += `<option value="${room.id}">${room.name}</option>`;
                         });
-                    })
-                    .catch(error => console.error('Error fetching beds:', error));
-            });
-        }
+                    });
+            } else {
+                roomSelect.innerHTML = `<option value="">Select a floor first</option>`;
+            }
+        });
+    
+        roomSelect.addEventListener("change", function () {
+            const roomId = this.value;
+            if (roomId) {
+                fetch(`/appointments/get_beds/?room_id=${roomId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        bedSelect.innerHTML = `<option value="">Select a bed</option>`;
+                        data.forEach(bed => {
+                            bedSelect.innerHTML += `<option value="${bed.id}">Bed ${bed.bed_number} (${bed.status})</option>`;
+                        });
+                    });
+            } else {
+                bedSelect.innerHTML = `<option value="">Select a room first</option>`;
+            }
+        });
     });
     
     
