@@ -8,43 +8,44 @@ Bed List | HIMS
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Bed List</h1>
-        <a href="{% url 'add_bed' %}" class="btn btn-primary">Add Bed</a>
+        <a href="{% url 'add_bed' %}" class="btn btn-primary mb-4">Add Bed</a>
     </div>
-
-    {% for floor, rooms in beds_by_floor.items %}
-    <div class="mb-4">
-        <h2 class="mb-3">Floor {{ floor }}</h2>
-        <div class="border p-3 rounded">
-            {% for room, beds in rooms.items %}
-            <div class="mb-4">
-                <h4>Room {{ room.name }}</h4>
-                <div class="d-flex flex-wrap">
-                    {% for bed in beds %}
-                    <div class="border rounded p-2 m-2 text-center" style="width: 100px;">
-                        <strong>Bed {{ bed.bed_number }}</strong>
-                        <br>
-                        {% if bed.status == 'available' %}
-                            <span class="badge bg-success">Available</span>
-                        {% elif bed.status == 'occupied' %}
-                            <span class="badge bg-danger">Occupied</span>
-                        {% else %}
-                            <span class="badge bg-warning">Maintenance</span>
-                        {% endif %}
-                        <div class="mt-2">
-                            <a href="{% url 'edit_bed' bed.id %}" class="btn btn-sm btn-primary">Edit</a>
-                            <button type="button" class="btn btn-sm btn-danger btn-delete"
-                                    data-item-name="Bed {{ bed.bed_number }}"
-                                    data-url="{% url 'delete_bed' bed.id %}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal">Delete</button>
+    <div class="row">
+        {% for floor, rooms in beds_by_floor.items %}
+        <div class="col-12 mb-4">
+            <h3>Floor {{ floor }}</h3>
+            <div class="d-flex flex-wrap">
+                {% for room, beds in rooms.items %}
+                <div class="border p-3 m-2" style="min-width: 200px; max-width: 250px;">
+                    <h5>Room {{ room.room_number }}</h5>
+                    <div class="d-flex flex-wrap">
+                        {% for bed in beds %}
+                        <div class="border m-1 text-center" style="width: 50px; height: 50px;">
+                            <strong>{{ bed.bed_number }}</strong>
+                            <br>
+                            {% if bed.status == 'available' %}
+                                <span class="badge bg-success">A</span>
+                            {% elif bed.status == 'occupied' %}
+                                <span class="badge bg-danger">O</span>
+                            {% else %}
+                                <span class="badge bg-warning">M</span>
+                            {% endif %}
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                    <div class="mt-2">
+                        <a href="{% url 'edit_bed' room.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                data-item-name="Bed {{ room.room_number }}"
+                                data-url="{% url 'delete_bed' room.id %}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal">Delete</button>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock %}

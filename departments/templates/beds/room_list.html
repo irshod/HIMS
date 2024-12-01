@@ -6,8 +6,10 @@ Room List | HIMS
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Room List</h1>
-    <a href="{% url 'add_room' %}" class="btn btn-primary mb-4">Add New Room</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Room List</h1>
+        <a href="{% url 'add_room' %}" class="btn btn-primary mb-4">Add New Room</a>
+    </div>
     <div class="row">
         {% for floor, rooms in rooms_by_floor.items %}
         <div class="col-12 mb-4">
@@ -15,7 +17,7 @@ Room List | HIMS
             <div class="d-flex flex-wrap">
                 {% for room in rooms %}
                 <div class="border p-3 m-2" style="min-width: 200px; max-width: 250px;">
-                    <h5>Room {{ room.number }}</h5>
+                    <h5>{{ room.name }} ({{ room.room_number }})</h5>
                     {% if room.is_occupied %}
                         <span class="badge bg-danger mb-2">Occupied</span>
                     {% else %}

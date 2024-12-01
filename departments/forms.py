@@ -77,29 +77,14 @@ class FloorForm(forms.ModelForm):
 class RoomForm(forms.ModelForm):
     class Meta:
         model = Room
-        fields = ['name', 'room_type', 'floor', 'department', 'description']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter a brief description of the room'}),
-        }
-        labels = {
-            'name': 'Room Name',
-            'room_type': 'Room Type',
-            'floor': 'Floor',
-            'department': 'Department',
-            'description': 'Description',
-        }
+        fields = ['name', 'room_number', 'room_type', 'floor', 'department', 'description']
 
 
 class BedForm(forms.ModelForm):
-    current_patient = forms.ModelChoiceField(
-        queryset=None,  # Will be overridden in the form initialization
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
+    # Remove `current_patient` from the form fields
     class Meta:
         model = Bed
-        fields = ['bed_number', 'room', 'status', 'current_patient']
+        fields = ['bed_number', 'room', 'status']
         widgets = {
             'bed_number': forms.TextInput(attrs={'placeholder': 'Enter Bed Number'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
@@ -108,9 +93,11 @@ class BedForm(forms.ModelForm):
             'bed_number': 'Bed Number',
             'room': 'Room',
             'status': 'Status',
-            'current_patient': 'Assigned Patient (IPD Only)',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['current_patient'].queryset = Patient.objects.filter(patient_type='IPD')
+        # Filter room options dynamically based on floor or other logic if needed
+        if 'room' in self.fields:
+            self.fields['room'].queryset = Room.objects.all()
+

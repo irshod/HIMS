@@ -1,13 +1,14 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.timezone import now
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import Appointment, Invoice, Payment, TreatmentHistory
-from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, TreatmentHistoryForm
+from .models import Appointment, IPDAdmission, Invoice, Payment, TreatmentHistory
+from .forms import AppointmentForm, AddServiceForm, AddMedicationForm, AddConsumableForm, IPDAdmissionForm, IPDDischargeForm, TreatmentHistoryForm
 from patient.forms import DiagnosisForm, Diagnosis
 from datetime import datetime, timedelta
-from departments.models import Service, Department
+from departments.models import Bed, Floor, Room, Service, Department
 from django.http import JsonResponse, HttpResponse
 from main.models import CustomUser 
 from departments.utils import get_doctors_by_department, get_services_by_department
@@ -66,8 +67,100 @@ def get_doctors_and_services(request):
 
     return JsonResponse({'doctors': doctors, 'services': services})
 
+def get_doctors(request):
+    department_id = request.GET.get('department_id')
+    if not department_id:
+        return JsonResponse({'error': 'Department ID is required'}, status=400)
+
+    try:
+        doctors = CustomUser.objects.filter(
+            departments_as_doctor__id=department_id,
+            roles__name='Doctor'
+        ).values('id', 'first_name', 'last_name')
+
+        data = {
+            'doctors': [{'id': doc['id'], 'name': f"{doc['first_name']} {doc['last_name']}"} for doc in doctors],
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def get_floors(request):
+    floors = Floor.objects.all().values('id', 'floor_number', 'description')
+    return JsonResponse({
+        'floors': [{'id': floor['id'], 'name': f"Floor {floor['floor_number']}"} for floor in floors]
+    })
+
+def get_rooms(request):
+    floor_id = request.GET.get('floor_id')
+    if not floor_id:
+        return JsonResponse({'error': 'Floor ID is required'}, status=400)
+
+    rooms = Room.objects.filter(floor_id=floor_id).values('id', 'name')
+    return JsonResponse({'rooms': list(rooms)})
+
+def get_beds(request):
+    room_id = request.GET.get('room_id')
+    if not room_id:
+        return JsonResponse({'error': 'Room ID is required'}, status=400)
+
+    beds = Bed.objects.filter(room_id=room_id, status='available').values('id', 'bed_number')
+    return JsonResponse({'beds': list(beds)})
+
+
+@login_required
+def admit_patient(request):
+    if request.method == 'POST':
+        form = IPDAdmissionForm(request.POST)
+        if form.is_valid():
+            admission = form.save(commit=False)
+            bed = form.cleaned_data['bed']
+
+            # Assign patient to the bed and mark it as occupied
+            if bed.status != 'available':
+                messages.error(request, "The selected bed is not available.")
+                return redirect('admit_patient')
+
+            admission.bed = bed
+            admission.save()
+
+            bed.current_patient = admission.patient
+            bed.status = 'occupied'
+            bed.save()
+
+            messages.success(request, f"Patient {admission.patient.first_name} {admission.patient.last_name} successfully admitted.")
+            return redirect('admissions_list')
+    else:
+        form = IPDAdmissionForm()
+
+    return render(request, 'admit_patient.html', {'form': form})
+
+
+@login_required
+def discharge_patient(request, admission_id):
+    admission = get_object_or_404(IPDAdmission, id=admission_id)
+    if request.method == 'POST':
+        form = IPDDischargeForm(request.POST, instance=admission)
+        if form.is_valid():
+            discharge = form.save(commit=False)
+            discharge.status = 'discharged'
+            discharge.save(update_fields=['discharge_date', 'status'])
+            if admission.bed:
+                admission.bed.status = 'available'  # Mark the bed as available
+                admission.bed.save()
+            messages.success(request, f"Patient {admission.patient.first_name} {admission.patient.last_name} discharged successfully.")
+            return redirect('admissions_list')
+    else:
+        form = IPDDischargeForm(instance=admission)
+    return render(request, 'discharge_patient.html', {'form': form, 'admission': admission})
+
+
+@login_required
+def ipd_admissions_list(request):
+    admissions = IPDAdmission.objects.all()
+    return render(request, 'admissions/admissions_list.html', {'admissions': admissions})
 # Generate Invoice
-@role_required(['Receptionist'])
+@role_required(['Receptionist','Admin'])
 def generate_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     # Recalculate total cost of services dynamically
@@ -93,7 +186,7 @@ def generate_invoice(request, appointment_id):
     })
 
 # Process Payment
-@role_required(['Receptionist'])
+@role_required(['Receptionist','Admin'])
 def process_payment(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.method == 'POST':

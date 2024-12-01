@@ -1,0 +1,160 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+{% load role_tags %}
+
+{% block title %}Admissions List | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Admissions List</h2>
+      
+        <a href="{% url 'admit_patient' %}" class="btn btn-primary mb-3">Add New Admission</a>
+    
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+          Filters
+      </button>
+  </div>
+
+  <!-- Filters Modal -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="filterModalLabel">Filters</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form method="get" id="filterForm">
+                  <div class="row">
+                      <div class="col-md-6">
+                          <label for="patient_name" class="form-label">Patient Name</label>
+                          <input type="text" name="patient_name" id="patient_name" class="form-control" value="{{ patient_name }}" placeholder="Enter patient name">
+                      </div>
+                      <div class="col-md-6">
+                          <label for="doctor_name" class="form-label">Doctor Name</label>
+                          <input type="text" name="doctor_name" id="doctor_name" class="form-control" value="{{ doctor_name }}" placeholder="Enter doctor name">
+                      </div>
+                      <div class="col-md-6">
+                          <label for="department" class="form-label">Department</label>
+                          <select name="department" id="department" class="form-control">
+                              <option value="">All</option>
+                              {% for dept in departments %}
+                                  <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == department_id %}selected{% endif %}>{{ dept.name }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-6">
+                          <label for="status" class="form-label">Status</label>
+                          <select name="status" id="status" class="form-control">
+                              <option value="">All</option>
+                              {% for status, label in status_choices %}
+                                  <option value="{{ status }}" {% if status == current_status %}selected{% endif %}>{{ label }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-6">
+                          <label for="date_after" class="form-label">Admission After</label>
+                          <input type="date" name="date_after" id="date_after" class="form-control" value="{{ date_after }}">
+                      </div>
+                      <div class="col-md-6">
+                          <label for="date_before" class="form-label">Admission Before</label>
+                          <input type="date" name="date_before" id="date_before" class="form-control" value="{{ date_before }}">
+                      </div>
+                  </div>
+              </form>
+              </div>
+              <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary" form="filterForm">Apply Filters</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Admissions List Table -->
+  <table class="table table-bordered mt-3">
+      <thead>
+          <tr>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Department</th>
+              <th>Admission Date</th>
+              <th>Discharge Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for admission in page_obj %}
+              <tr id="admission-row-{{ admission.id }}">
+                  <td>{{ admission.patient.first_name }} {{ admission.patient.last_name }}</td>
+                  <td>Dr. {{ admission.doctor.get_full_name }}</td>
+                  <td>{{ admission.department.name }}</td>
+                  <td>{{ admission.admission_date|date:"Y-m-d H:i" }}</td>
+                  <td>{{ admission.discharge_date|default:"N/A" }}</td>
+                  <td>{{ admission.get_status_display }}</td>
+                  <td>
+                      <a href="{% url 'view_admission' admission.id %}" class="btn btn-info btn-sm">View</a>
+                      {% if admission.status == "admitted" %}
+                          <a href="{% url 'discharge_admission' admission.id %}" 
+                             class="btn btn-warning btn-sm" 
+                             onclick="return confirm('Are you sure you want to discharge this patient?');">
+                              Discharge
+                          </a>
+                      {% elif admission.status == "discharged" %}
+                          <span class="text-success">Discharged</span>
+                      {% endif %}
+                  </td>
+              </tr>
+          {% empty %}
+              <tr>
+                  <td colspan="7" class="text-center">No admissions found.</td>
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+
+  <!-- Pagination Controls -->
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1" aria-label="First">
+            <span aria-hidden="true">&laquo;&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+            <span aria-hidden="true">&raquo;&raquo;</span>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+
+</div>
+{% endblock content %}

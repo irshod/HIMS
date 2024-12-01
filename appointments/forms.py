@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
-from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication
+from .models import Appointment, Invoice, Payment, TreatmentHistory, Medication, IPDAdmission
 from departments.models import Department, Service
 from inventory.models import Medication, Consumable
 
@@ -18,14 +18,12 @@ class AppointmentForm(forms.ModelForm):
 
     class Meta:
         model = Appointment
-        fields = ['patient', 'department', 'doctor', 'appointment_date', 'appointment_type']
+        fields = ['patient', 'department', 'doctor', 'appointment_date']
         widgets = {
             'appointment_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'appointment_type': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'appointment_date': 'Date & Time',
-            'appointment_type': 'Type',
         }
 
     def __init__(self, *args, **kwargs):
@@ -51,6 +49,25 @@ class AppointmentForm(forms.ModelForm):
 
         # Set default date and time
         self.fields['appointment_date'].initial = now().strftime("%Y-%m-%dT%H:%M")
+
+class IPDAdmissionForm(forms.ModelForm):
+    class Meta:
+        model = IPDAdmission
+        fields = ['patient', 'department', 'doctor', 'floor', 'room', 'bed', 'status']
+
+    def clean_bed(self):
+        bed = self.cleaned_data.get('bed')
+        if bed and bed.status != 'available':
+            raise forms.ValidationError("The selected bed is not available.")
+        return bed
+    
+class IPDDischargeForm(forms.ModelForm):
+    class Meta:
+        model = IPDAdmission
+        fields = ['discharge_date']
+        widgets = {
+            'discharge_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
 
 
 # Add Service Form

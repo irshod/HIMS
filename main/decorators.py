@@ -9,6 +9,9 @@ def role_required(allowed_roles):
         def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('login')  # Redirect unauthenticated users to login
+            if request.user.is_superuser:
+                # Allow superusers to bypass role checks
+                return view_func(request, *args, **kwargs)
             if not request.user.roles.filter(name__in=allowed_roles).exists():
                 # Render the error template if the role check fails
                 return render(request, 'main/error.html', {
@@ -24,6 +27,10 @@ def role_and_permission_required(allowed_roles, required_permission):
         @wraps(view_func)
         @login_required
         def _wrapped_view(request, *args, **kwargs):
+            # Allow superusers to bypass all checks
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+            
             # Check if the user has the required role
             if not request.user.roles.filter(name__in=allowed_roles).exists():
                 raise PermissionDenied("You do not have the required role.")

@@ -293,7 +293,7 @@ def edit_floor(request, floor_id):
             messages.error(request, "There was an error updating the floor.")
     else:
         form = FloorForm(instance=floor)
-    return render(request, 'beds/floor_edit.html', {'form': form, 'floor': floor})
+    return render(request, 'beds/floor_form.html', {'form': form, 'floor': floor})
 
 @login_required
 def delete_floor(request, floor_id):
@@ -311,14 +311,15 @@ def delete_floor(request, floor_id):
 # Room Views
 @login_required
 def list_room(request):
-    # Group rooms by floors for better organization
+    rooms = Room.objects.all()
     rooms_by_floor = {}
-    for room in Room.objects.select_related('floor').prefetch_related('beds'):
+    for room in Room.objects.select_related('floor').all():
         floor_number = room.floor.floor_number
         if floor_number not in rooms_by_floor:
             rooms_by_floor[floor_number] = []
         rooms_by_floor[floor_number].append(room)
-    return render(request, 'beds/room_list.html', {'rooms_by_floor': rooms_by_floor})
+
+    return render(request, 'beds/room_list.html', {'rooms_by_floor': rooms_by_floor, 'rooms':rooms})
 
 @login_required
 def add_room(request):
@@ -366,17 +367,18 @@ def list_bed(request):
 
     for bed in beds:
         floor_number = bed.room.floor.floor_number
-        room_name = bed.room
+        room = bed.room
 
         if floor_number not in beds_by_floor:
             beds_by_floor[floor_number] = {}
 
-        if room_name not in beds_by_floor[floor_number]:
-            beds_by_floor[floor_number][room_name] = []
+        if room not in beds_by_floor[floor_number]:
+            beds_by_floor[floor_number][room] = []
 
-        beds_by_floor[floor_number][room_name].append(bed)
+        beds_by_floor[floor_number][room].append(bed)
 
     return render(request, 'beds/bed_list.html', {'beds_by_floor': beds_by_floor})
+
 
 @login_required
 def add_bed(request):

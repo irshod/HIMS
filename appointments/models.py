@@ -1,11 +1,59 @@
 from django.db import models
 from django.conf import settings
-from departments.models import Service
+from django.utils.timezone import now
 from inventory.models import Medication, Consumable
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 
-class Appointment(models.Model):
+class BaseContext(models.Model):
+    VISIT_TYPE_CHOICES = [
+        ('OPD', 'Outpatient'),
+        ('IPD', 'Inpatient'),
+    ]
+
+    patient = models.ForeignKey('patient.Patient', on_delete=models.CASCADE, related_name='%(class)s_related')
+    department = models.ForeignKey('departments.Department', on_delete=models.CASCADE, related_name='%(class)s_related')
+    doctor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'roles__name': 'Doctor'},
+        related_name='%(class)s_related'
+    )
+    services = models.ManyToManyField('departments.Service', related_name='%(class)s_services', blank=True)
+    status = models.CharField(max_length=20)
+    visit_type = models.CharField(
+        max_length=10,
+        choices=VISIT_TYPE_CHOICES,
+        default='OPD',
+    )
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    payment_status = models.CharField(
+        max_length=10,
+        choices=[('paid', 'Paid'), ('unpaid', 'Unpaid')],
+        default='unpaid'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True  # Mark as abstract
+
+    def calculate_total_cost(self):
+        """Calculate the total cost of all associated services."""
+        if self.id:  # Ensure the object is saved before accessing the ManyToManyField
+            self.total_cost = sum(service.price for service in self.services.all())
+            self.save(update_fields=['total_cost'])
+
+    def mark_as_paid(self):
+        """Mark the context as paid."""
+        self.payment_status = 'paid'
+        self.save(update_fields=['payment_status'])
+
+    def __str__(self):
+        return f"{self.__class__.__name__} for {self.patient.first_name} {self.patient.last_name}"
+    
+
+class Appointment(BaseContext):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('active', 'Active'),
@@ -16,22 +64,8 @@ class Appointment(models.Model):
         ('paid', 'Paid'),
         ('unpaid', 'Unpaid'),
     ]
-    APPOINTMENT_TYPE_CHOICES = [
-        ('IPD', 'Outpatient'),
-        ('OPD', 'Inpatient'),
-    ]
-
-    patient = models.ForeignKey('patient.Patient', on_delete=models.CASCADE, related_name='appointments')
-    department = models.ForeignKey('departments.Department', on_delete=models.CASCADE, related_name='appointments')
-    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='appointments')
-    services = models.ManyToManyField(Service, related_name='appointments')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
-    appointment_type = models.CharField(max_length=10, choices=APPOINTMENT_TYPE_CHOICES, default='opd')
-    total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     appointment_date = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def calculate_total_cost(self):
         """Calculate the total cost of all associated services."""
@@ -62,13 +96,41 @@ class Appointment(models.Model):
         self.status = 'canceled'
         self.save(update_fields=['status'])
 
-    def mark_as_paid(self):
-        self.payment_status = 'paid'
-        self.save(update_fields=['payment_status'])
+    
+class IPDAdmission(BaseContext):
+    VISIT_TYPE_CHOICES = [
+        ('OPD', 'Outpatient'),
+        ('IPD', 'Inpatient'),
+    ]
+
+    floor = models.ForeignKey('departments.Floor', on_delete=models.SET_NULL, null=True, blank=True)
+    room = models.ForeignKey('departments.Room', on_delete=models.SET_NULL, null=True, blank=True)
+    bed = models.OneToOneField('departments.Bed', on_delete=models.SET_NULL, null=True, blank=True)
+    admission_date = models.DateTimeField(auto_now_add=True)
+    discharge_date = models.DateTimeField(null=True, blank=True)
+    STATUS_CHOICES = [
+        ('admitted', 'Admitted'),
+        ('discharged', 'Discharged'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='admitted')
+    visit_type = models.CharField(
+        max_length=10,
+        choices=VISIT_TYPE_CHOICES,
+        default='IPD'  # Default for IPDAdmission
+    )
+
+    def mark_as_discharged(self):
+        """Mark the admission as discharged."""
+        if self.status == 'admitted':
+            self.status = 'discharged'
+            self.discharge_date = now()
+            self.save(update_fields=['status', 'discharge_date'])
+        else:
+            raise ValidationError("Patient is already discharged.")
 
     def __str__(self):
-        return f"Appointment #{self.id} for {self.patient.first_name} {self.patient.last_name}"
-    
+        return f"IPD Admission for {self.patient.first_name} {self.patient.last_name} in {self.room} on Floor {self.floor}"
+
 
 
 class Invoice(models.Model):

@@ -1,0 +1,58 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load permissions %}
+
+{% block title %}Discharge Patient | HIMS{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mt-4 mb-3">Discharge Patient</h2>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Patient Information -->
+                <div class="mb-3">
+                    <label for="patient" class="form-label">Patient</label>
+                    <input type="text" id="patient" class="form-control" value="{{ admission.patient.first_name }} {{ admission.patient.last_name }}" disabled>
+                </div>
+
+                <!-- Department -->
+                <div class="mb-3">
+                    <label for="department" class="form-label">Department</label>
+                    <input type="text" id="department" class="form-control" value="{{ admission.department.name }}" disabled>
+                </div>
+
+                <!-- Doctor -->
+                <div class="mb-3">
+                    <label for="doctor" class="form-label">Doctor</label>
+                    <input type="text" id="doctor" class="form-control" value="{{ admission.doctor.get_full_name }}" disabled>
+                </div>
+
+                <!-- Room -->
+                <div class="mb-3">
+                    <label for="room" class="form-label">Room</label>
+                    <input type="text" id="room" class="form-control" value="{{ admission.room.name }}" disabled>
+                </div>
+
+                <!-- Bed -->
+                <div class="mb-3">
+                    <label for="bed" class="form-label">Bed</label>
+                    <input type="text" id="bed" class="form-control" value="{{ admission.bed.bed_number }}" disabled>
+                </div>
+
+                <!-- Discharge Date -->
+                <div class="mb-3">
+                    {{ form.discharge_date|as_crispy_field }}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-success">Discharge Patient</button>
+                <a href="{% url 'admissions_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

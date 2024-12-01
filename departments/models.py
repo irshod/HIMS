@@ -1,6 +1,6 @@
 from django.db import models
 from main.models import CustomUser
-
+from django.core.exceptions import ValidationError
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -80,7 +80,6 @@ class Floor(models.Model):
     def get_rooms(self):
         return self.rooms.all()
 
-
 class Room(models.Model):
     ROOM_TYPE_CHOICES = [
         ('general', 'General Ward'),
@@ -88,27 +87,28 @@ class Room(models.Model):
         ('icu', 'ICU'),
     ]
 
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
+    room_number = models.IntegerField()
     room_type = models.CharField(max_length=10, choices=ROOM_TYPE_CHOICES, default='general')
     floor = models.ForeignKey(Floor, on_delete=models.CASCADE, related_name='rooms')
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='rooms')
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return f"{self.name} ({self.get_room_type_display()}) on Floor {self.floor.floor_number}"
+    class Meta:
+        unique_together = ('floor', 'room_number')
 
-    def get_beds(self):
-        return self.beds.all()
+    def __str__(self):
+        return f"Room {self.room_number} ({self.get_room_type_display()}) on Floor {self.floor.floor_number}"
 
 
 class Bed(models.Model):
+    bed_number = models.IntegerField()
     BED_STATUS_CHOICES = [
         ('available', 'Available'),
         ('occupied', 'Occupied'),
         ('maintenance', 'Maintenance'),
     ]
 
-    bed_number = models.CharField(max_length=10, unique=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='beds')
     status = models.CharField(max_length=15, choices=BED_STATUS_CHOICES, default='available')
     current_patient = models.OneToOneField(
@@ -119,5 +119,20 @@ class Bed(models.Model):
         related_name='bed'
     )
 
+    class Meta:
+        unique_together = ('room', 'bed_number')
+
+
+    def clean(self):
+        """Ensure patients can only be assigned through the Admit Patient view."""
+        if self.current_patient and self.status != 'occupied':
+            raise ValidationError("Patients can only be assigned through the Admit Patient process.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Validate before saving
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Bed {self.bed_number} in Room {self.room.name} ({self.get_status_display()})"
+
+

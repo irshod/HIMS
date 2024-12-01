@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'appointments',
     'finance',
     'inventory',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +49,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+INSTALLED_APPS += [
+    'crispy_bootstrap5',
+]
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 ROOT_URLCONF = 'HIMS.urls'
 
