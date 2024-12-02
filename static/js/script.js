@@ -1,35 +1,6 @@
 (function () {
     "use strict";
 
-    // Sidebar toggle functionality
-    document.addEventListener("DOMContentLoaded", function () {
-        const sidebarToggle = document.getElementById('sidebarCollapse');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', toggleSidebar);
-        }
-    });
-
-    // Loader functionality
-    window.addEventListener('load', function () {
-        document.querySelector(".loading").style.display = "none";
-    });
-
-    // Fullscreen toggle functionality
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-
-    // Full Screen Button
-    const fullscreenToggle = document.getElementById('fullscreenToggle');
-    if (fullscreenToggle) {
-        fullscreenToggle.addEventListener('click', toggleFullscreen);
-    }
-
-
     // Delete modal
     document.addEventListener("DOMContentLoaded", () => {
         const deleteModal = document.getElementById("deleteModal");
@@ -51,8 +22,6 @@
     });
     
     
-
-
     // Dual-list box setup
     function setupDualListBox(availableId, selectedId, addButtonId, removeButtonId, totalPriceId = null) {
         const availableSelect = document.getElementById(availableId);

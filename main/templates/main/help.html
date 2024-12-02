@@ -1,0 +1,80 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>Help Center</h2>
+    <p>Welcome to the Help Center for HIMS. Below, you'll find instructions for common tasks and workflows in the system.</p>
+
+    <h4>Common Workflows</h4>
+    <ul>
+      <li>
+        <strong>How to register a new patient?</strong>
+        <p>
+          If this is the patient's first visit, navigate to the <strong>Patient Module</strong>, click <strong>"Register Patient"</strong>, and fill in the necessary details like name, date of birth, gender, contact information, and address.
+        </p>
+      </li>
+
+      <li>
+        <strong>How to create an appointment for an existing patient?</strong>
+        <p>
+          Search for the patient in the <strong>Patient List</strong>. If found, go to their profile and click <strong>"Create Appointment"</strong>. Choose the department, doctor, and service, and confirm the appointment.
+        </p>
+      </li>
+
+      <li>
+        <strong>How to admit a patient to IPD?</strong>
+        <p>
+          If a patient requires admission, navigate to the <strong>IPD Module</strong>. Search for the patient, select <strong>"Admit"</strong>, choose the room, bed, and admission details, and confirm the admission.
+        </p>
+      </li>
+
+      <li>
+        <strong>How to add medication for an admitted patient?</strong>
+        <p>
+          Go to the patient’s IPD profile. Under the <strong>"Medications" tab</strong>, click <strong>"Add Medication"</strong>. Choose the medication, dosage, and duration, then save the record.
+        </p>
+      </li>
+
+      <li>
+        <strong>How to view a patient's history?</strong>
+        <p>
+          To view the complete history of a patient, search for the patient in the <strong>Patient Module</strong>, go to their profile, and navigate to the <strong>"History" tab</strong>. Here, you can see past appointments, treatments, and medications.
+        </p>
+      </li>
+    </ul>
+
+    <h4>System Instructions</h4>
+    <ul>
+      <li>
+        <strong>How to update your profile?</strong>
+        <p>
+          Navigate to <strong>"View Profile"</strong> from the dropdown menu and click "Edit" to update your details.
+        </p>
+      </li>
+      <li>
+        <strong>How to manage inventory?</strong>
+        <p>
+          Go to the <strong>Inventory Module</strong> to add, edit, or update medications and consumables. You can also set reorder thresholds and track stock levels.
+        </p>
+      </li>
+      <li>
+        <strong>How to generate invoices?</strong>
+        <p>
+          In the <strong>Finance Module</strong>, you can generate invoices for appointments, admissions, and other services. Go to the respective section, click <strong>"Generate Invoice"</strong>, and confirm payment details.
+        </p>
+      </li>
+      <li>
+        <strong>How to create departments and assign staff?</strong>
+        <p>
+          ONLY ADMIN!!! <br> Navigate to the <strong>Departments Module</strong>, click <strong>"Add Department"</strong>, and fill in the details. Assign doctors and nurses to the department and specify the services offered.
+        </p>
+      </li>
+    </ul>
+
+    <h4>Support</h4>
+    <p>
+      If you need additional support, please contact the system administrator at 
+      <a href="mailto:support@hims.tj">SysAdmin</a>.
+    </p>
+  </div>
+{% endblock %}

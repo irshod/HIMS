@@ -11,46 +11,47 @@
     <!-- Quick Stats Section -->
     <div class="row text-center">
       <div class="col-md-2">
-        <div class="card shadow-sm text-white bg-info mb-3">
-          <div class="card-body py-3">
-            <h6 class="card-title">Today's Appointments</h6>
-            <h4 class="card-text">{{ today_appointments }}</h4>
+          <div class="card dashboard-card text-white bg-info mb-3">
+              <div class="card-body py-3">
+                  <h6 class="card-title">Today's Appointments</h6>
+                  <h4 class="card-text">{{ today_appointments }}</h4>
+              </div>
           </div>
-        </div>
       </div>
       <div class="col-md-2">
-        <div class="card shadow-sm text-white bg-primary mb-3">
-          <div class="card-body py-3">
-            <h6 class="card-title">Total Patients</h6>
-            <h4 class="card-text">{{ total_patients }}</h4>
+          <div class="card dashboard-card text-white bg-primary mb-3">
+              <div class="card-body py-3">
+                  <h6 class="card-title">Total Patients</h6>
+                  <h4 class="card-text">{{ total_patients }}</h4>
+              </div>
           </div>
-        </div>
       </div>
       <div class="col-md-2">
-        <div class="card shadow-sm text-white bg-success mb-3">
-          <div class="card-body py-3">
-            <h6 class="card-title">Appointments (This Month)</h6>
-            <h4 class="card-text">{{ total_appointments }}</h4>
+          <div class="card dashboard-card text-white bg-success mb-3">
+              <div class="card-body py-3">
+                  <h6 class="card-title">Appointments (This Month)</h6>
+                  <h4 class="card-text">{{ total_appointments }}</h4>
+              </div>
           </div>
-        </div>
       </div>
       <div class="col-md-2">
-        <div class="card shadow-sm text-white bg-warning mb-3">
-          <div class="card-body py-3">
-            <h6 class="card-title">Unpaid Invoices</h6>
-            <h4 class="card-text">{{ unpaid_invoices }}</h4>
+          <div class="card dashboard-card text-white bg-warning mb-3">
+              <div class="card-body py-3">
+                  <h6 class="card-title">Unpaid Invoices</h6>
+                  <h4 class="card-text">{{ unpaid_invoices }}</h4>
+              </div>
           </div>
-        </div>
       </div>
       <div class="col-md-2">
-        <div class="card shadow-sm text-white bg-danger mb-3">
-          <div class="card-body py-3">
-            <h6 class="card-title">Active Doctors</h6>
-            <h4 class="card-text">{{ total_doctors }}</h4>
+          <div class="card dashboard-card text-white bg-danger mb-3">
+              <div class="card-body py-3">
+                  <h6 class="card-title">Active Doctors</h6>
+                  <h4 class="card-text">{{ total_doctors }}</h4>
+              </div>
           </div>
-        </div>
       </div>
-    </div>
+  </div>
+  
     <!-- Quick Actions Section -->
     <div class="row mt-4">
       <div class="col-md-12">
@@ -98,14 +99,13 @@
     <!-- Recent Activities Section -->
     <div class="row mt-4">
       <div class="col-md-12">
-        <h3 class="mb-3">Recent Activities</h3>
+        <h3>Recent Activity</h3>
         <ul class="list-group">
           {% for activity in recent_activities %}
-            <li class="list-group-item">Appointment for {{ activity.patient.first_name }} {{ activity.patient.last_name }}
-              with Dr. {{ activity.doctor.first_name }} {{ activity.doctor.last_name }}
-              on {{ activity.date }} at {{ activity.time }}.</li>
-          {% empty %}
-            <li class="list-group-item text-center">No recent activities</li>
+            <li class="list-group-item">
+              <span class="badge bg-primary">{{ activity.timestamp }}</span>
+              {{ activity.message }}
+            </li>
           {% endfor %}
         </ul>
       </div>

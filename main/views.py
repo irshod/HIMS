@@ -5,15 +5,15 @@ from django.utils.timezone import now
 from django.http import HttpResponseForbidden, JsonResponse
 from django.core.paginator import Paginator
 from django.contrib import messages
-from django.db.models import Count, Sum, F
+from django.db.models import Count, Sum, F, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
 import calendar
 import json
 from .models import CustomUser, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
-from appointments.models import Appointment, Invoice
+from appointments.models import Appointment, IPDAdmission, Invoice
 from patient.models import Patient
-from departments.models import DoctorProfile
+from departments.models import DoctorProfile, NurseProfile
 from inventory.models import Medication, Consumable
 from .decorators import role_required
 
@@ -127,11 +127,47 @@ def doctor_dashboard(request):
     if not request.user.roles.filter(name='Doctor').exists():
         return HttpResponseForbidden("Access Denied")
 
-    data = {
-        "total_appointments": Appointment.objects.filter(doctor=request.user).count(),
-        "patients_today": Appointment.objects.filter(doctor=request.user, appointment_date__date=now().date()).count(),
+    doctor_profile = DoctorProfile.objects.filter(user=request.user).first()
+
+    # Fetch stats
+    total_appointments = Appointment.objects.filter(doctor=request.user).count()
+    appointments_today = Appointment.objects.filter(
+        doctor=request.user,
+        appointment_date__date=now().date()
+    ).count()
+
+    # IPD Patients (Admitted only)
+    ipd_patients = IPDAdmission.objects.filter(
+        doctor=request.user, status='admitted'
+    ).select_related('patient', 'room', 'floor')
+
+    # Pending Patients
+    pending_patients = Appointment.objects.filter(
+        doctor=request.user, status='pending'
+    ).select_related('patient')
+
+    # Today's Patients
+    todays_patients = Appointment.objects.filter(
+        doctor=request.user, appointment_date__date=now().date()
+    ).select_related('patient')
+
+    # All Patients Treated by This Doctor
+    all_patients = Patient.objects.filter(
+        appointment_related__doctor=request.user
+    ).distinct()
+
+    context = {
+        "doctor_profile": doctor_profile,
+        "total_appointments": total_appointments,
+        "appointments_today": appointments_today,
+        "ipd_patients": ipd_patients,
+        "pending_patients": pending_patients,
+        "todays_patients": todays_patients,
+        "all_patients": all_patients,
     }
-    return render(request, 'main/dashboards/doctor_dashboard.html', data)
+    return render(request, 'main/dashboards/doctor_dashboard.html', context)
+
+
 
 @role_required(['Nurse'])
 def nurse_dashboard(request):
@@ -150,11 +186,25 @@ def receptionist_dashboard(request):
     total_appointments = Appointment.objects.filter(appointment_date__month=now().month).count()
     unpaid_invoices = Invoice.objects.filter(total_amount__gt=0, payments__isnull=True).count()
     total_doctors = CustomUser.objects.filter(roles__name="Doctor", is_active=True).count()
-    recent_activities = Appointment.objects.order_by('-updated_at')[:5]
     todays_patients = Appointment.objects.filter(appointment_date__date=now().date()).select_related('patient', 'doctor')
     today_appointments = Appointment.objects.filter(appointment_date__date=now().date()).count()
-    unregistered_patients = Patient.objects.filter(appointment_related=None).count()  # Fixed this line
+    unregistered_patients = Patient.objects.filter(appointment_related=None).count() 
 
+    recent_activities = [
+        {"timestamp": p.created_at, "message": f"New patient registered: {p.first_name} {p.last_name}"}
+        for p in Patient.objects.order_by("-created_at")[:5]
+    ] + [
+        {"timestamp": a.created_at, "message": f"Appointment scheduled for Dr. {a.doctor}"}
+        for a in Appointment.objects.order_by("-created_at")[:5]
+    ] + [
+        {"timestamp": a.created_at, "message": f"IPD Admission admited for Dr. {a.doctor}"}
+        for a in IPDAdmission.objects.order_by("-created_at")[:5]
+    ] + [
+        {"timestamp": i.created_at, "message": f"Invoice #{i.id} marked as {'Paid' if i.payments.exists() else 'Unpaid'}"}
+        for i in Invoice.objects.order_by("-created_at")[:5]
+    ]
+    recent_activities = sorted(recent_activities, key=lambda x: x['timestamp'], reverse=True)[:10]
+    
     context = {
         'total_patients': total_patients,
         'total_appointments': total_appointments,
@@ -313,3 +363,39 @@ def notification_as_read(request):
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"}, status=400)
 
+
+
+def search_results(request):
+    query = request.GET.get('query', '').strip()  # Get the search query from the request
+    patients = []
+    
+    if query:
+        # Assuming you have Patient and Doctor models
+        from patient.models import Patient
+        patients = Patient.objects.filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query)
+        )
+    
+    return render(request, 'main/search_results.html', {'query': query, 'patients': patients})
+
+@login_required
+def user_profile_view(request):
+    user = request.user
+    doctor_profile = None
+    nurse_profile = None
+
+    # Check if the user has a doctor or nurse profile
+    if user.has_role('Doctor'):
+        doctor_profile = DoctorProfile.objects.filter(user=user).first()
+    elif user.has_role('Nurse'):
+        nurse_profile = NurseProfile.objects.filter(user=user).first()
+
+    return render(request, 'main/user_profile.html', {
+        'user': user,
+        'doctor_profile': doctor_profile,
+        'nurse_profile': nurse_profile,
+    })
+
+@login_required
+def help_view(request):
+    return render(request, 'main/help.html')

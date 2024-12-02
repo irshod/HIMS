@@ -351,6 +351,23 @@ margin-top: 20px;
 color: #007bff;
 }
 
+.dashboard-card {
+    min-width: 160px; /* Ensures the cards have a minimum width */
+    min-height: 120px; /* Ensures the cards have a minimum height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-card h6 {
+    font-size: 0.9rem;
+}
+
+.dashboard-card h4 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
 
 /*=======================
  Tables
