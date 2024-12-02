@@ -1,31 +1,67 @@
-{% extends "main/base.html" %}
-{% block title %}Medical History{% endblock title %}
+{% extends 'main/base.html' %}
+{% block title %}
+  Medical History
+{% endblock %}
 
 {% block content %}
-<div class="container">
+  <div class="container">
     <h3>Medical History for {{ patient.first_name }} {{ patient.last_name }}</h3>
     {% if medical_history %}
-    <table class="table table-bordered">
+      <h1>Medical History for {{ patient.first_name }} {{ patient.last_name }}</h1>
+
+      <h1>Medical History for {{ patient.first_name }} {{ patient.last_name }}</h1>
+
+      <table class="table table-bordered">
         <thead>
-            <tr>
-                <th>Date</th>
-                <th>Condition</th>
-                <th>Description</th>
-            </tr>
+          <tr>
+            <th>Date</th>
+            <th>Diagnosis</th>
+            <th>Notes</th>
+            <th>Medications</th>
+            <th>Consumables</th>
+            <th>Services/Tests</th>
+          </tr>
         </thead>
         <tbody>
-            {% for history in medical_history %}
+          {% for date, details in history_by_date.items %}
             <tr>
-                <td>{{ history.diagnosis_date|date:"Y-m-d" }}</td>
-                <td>{{ history.condition }}</td>
-                <td>{{ history.description }}</td>
+              <td>{{ date|date:'M d, Y' }}</td>
+              <td>
+                {% for diagnosis in details.diagnosis %}
+                  {{ diagnosis }}<br />
+                {% empty %}
+                  No diagnosis
+                {% endfor %}
+              </td>
+              <td>{{ details.notes|default:'No notes' }}</td>
+              <td>
+                {% for medication in details.medications %}
+                  {{ medication }}<br />
+                {% empty %}
+                  No medications
+                {% endfor %}
+              </td>
+              <td>
+                {% for consumable in details.consumables %}
+                  {{ consumable }}<br />
+                {% empty %}
+                  No consumables
+                {% endfor %}
+              </td>
+              <td>
+                {% for service in details.services %}
+                  {{ service }}<br />
+                {% empty %}
+                  No services
+                {% endfor %}
+              </td>
             </tr>
-            {% endfor %}
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
     {% else %}
-    <p>No medical history records found.</p>
+      <p>No medical history records found.</p>
     {% endif %}
     <a href="{% url 'patient_profile' patient.id %}" class="btn btn-secondary">Back to Profile</a>
-</div>
-{% endblock content %}
+  </div>
+{% endblock %}

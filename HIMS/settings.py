@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'inventory',
     'crispy_forms',
 ]
-
+INSTALLED_APPS += [
+    'crispy_bootstrap5',
+]
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -49,9 +53,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-INSTALLED_APPS += [
-    'crispy_bootstrap5',
-]
+
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 ROOT_URLCONF = 'HIMS.urls'

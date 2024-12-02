@@ -344,8 +344,10 @@ def appointments_list(request):
 
 
 @role_required(['Doctor','Nurse','Receptionist'])
+
 def view_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
+    patient = appointment.patient
 
     # Group history by date
     history_by_date = defaultdict(lambda: {
@@ -357,27 +359,34 @@ def view_appointment(request, appointment_id):
     })
 
     # Fetch and group diagnoses (no doctor field in Diagnosis)
-    for diagnosis in Diagnosis.objects.filter(appointment=appointment):
+    for diagnosis in Diagnosis.objects.filter(appointment__patient=patient):
         date = localdate(diagnosis.date)
         history_by_date[date]["diagnosis"].append(diagnosis)
 
     # Fetch and group treatment history (includes doctor field)
-    for treatment in TreatmentHistory.objects.filter(appointment=appointment).select_related('doctor'):
+    for treatment in TreatmentHistory.objects.filter(appointment__patient=patient).select_related('doctor'):
         date = localdate(treatment.date)
         history_by_date[date]["notes"] = treatment.treatment_notes
-        history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
-        history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
-        history_by_date[date]["doctor"] = appointment.doctor  # Track doctor for treatments
+        history_by_date[date]["medications"].extend([
+            f"{medication.medication.name} ({medication.quantity})"
+            for medication in treatment.treatment_medications.all()
+        ])
+        history_by_date[date]["consumables"].extend([
+            f"{consumable.consumable.name} ({consumable.quantity})"
+            for consumable in treatment.treatment_consumables.all()
+        ])
 
-    # Fetch and group services/tests
-    for service in appointment.services.all():
-        date = localdate(appointment.appointment_date)
-        history_by_date[date]["services"].append(service)
+    # Fetch and group services/tests for all appointments
+    for related_appointment in Appointment.objects.filter(patient=patient).prefetch_related('services'):
+        date = localdate(related_appointment.appointment_date)
+        history_by_date[date]["services"].extend(related_appointment.services.all())
 
     return render(request, 'appointments/view_appointment.html', {
         'appointment': appointment,
         'history_by_date': dict(history_by_date),  # Pass as a dictionary for template rendering
+        'current_appointment': appointment,  # Highlight the current appointment
     })
+
 
 # Update status to in-progress (doctor starts the appointment)
 @role_required(['Doctor','Nurse'])

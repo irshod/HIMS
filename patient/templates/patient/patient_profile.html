@@ -2,7 +2,7 @@
 {% block title %}Patient Profile{% endblock title %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid">
     <h2>Patient Profile</h2>
     <hr>
     <div class="row">
@@ -17,7 +17,6 @@
                 <li class="list-group-item"><strong>Address:</strong> {{ patient.address }}</li>
             </ul>
         </div>
-
         <!-- Emergency Contact -->
         <div class="col-md-6">
             <h4>Emergency Contact</h4>
@@ -29,34 +28,73 @@
             </ul>
         </div>
     </div>
-
+<br>
     <!-- Medical History -->
-    <div class="mt-4">
-        <h4>Medical History</h4>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Condition</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for history in medical_history %}
-                <tr>
-                    <td>{{ history.diagnosis_date|date:"Y-m-d" }}</td>
-                    <td>{{ history.condition }}</td>
-                    <td>{{ history.description }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center">No medical history available.</td>
-                </tr>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Medical History</h5>
+        </div>
+        <div class="card-body">
+            {% if medical_history %}
+                {% for date, details in medical_history.items %}
+                    <h6 class="text-muted">Date: {{ date|date:"M d, Y" }}</h6>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Diagnosis</th>
+                                <th>Notes</th>
+                                <th>Medications</th>
+                                <th>Consumables</th>
+                                <th>Services/Tests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    {% for diagnosis in details.diagnosis %}
+                                        {{ diagnosis }}<br>
+                                    {% empty %}
+                                        No diagnosis
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for note in details.notes %}
+                                        {{ note }}<br>
+                                    {% empty %}
+                                        None
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for medication in details.medications %}
+                                        {{ medication }}<br>
+                                    {% empty %}
+                                        No medications
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for consumable in details.consumables %}
+                                        {{ consumable }}<br>
+                                    {% empty %}
+                                        No consumables
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for service in details.services %}
+                                        {{ service.name }}<br>
+                                    {% empty %}
+                                        No services/tests
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 {% endfor %}
-            </tbody>
-        </table>
-        
+            {% else %}
+                <p>No medical history available.</p>
+            {% endif %}
+        </div>
     </div>
+</div>
 
     <!-- Insurance Details -->
     <div class="mt-4">

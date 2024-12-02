@@ -14,6 +14,7 @@ urlpatterns = [
     # Medical History Management
     path('<int:patient_id>/medical-history/add/', views.add_medical_history, name='add_medical_history'),  # Add medical history
     path('<int:patient_id>/medical-history/', views.view_medical_history, name='view_medical_history'),  # View medical history
+    path('appointments/<int:appointment_id>/history/<str:date>/pdf/', views.generate_individual_pdf, name='generate_individual_pdf'),
 
     # Insurance Management
     path('<int:patient_id>/insurance/add/', views.add_insurance, name='add_insurance'),  # Add insurance details

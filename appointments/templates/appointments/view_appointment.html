@@ -88,6 +88,7 @@
                   <th>Medications</th>
                   <th>Consumables</th>
                   <th>Tests</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -130,6 +131,11 @@
                       No tests
                     {% endfor %}
                   </td>
+                  <td>
+                    <a href="{% url 'generate_individual_pdf' appointment.id date %}" class="btn btn-primary btn-sm">
+                        Download PDF
+                    </a>
+                </td>
                 </tr>
               </tbody>
             </table>
@@ -140,10 +146,6 @@
         </div>
         
       </div>
-    
-    
-    
-    
 
     <!-- Add Actions -->
     <div class="card mb-4">
