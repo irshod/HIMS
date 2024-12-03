@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -9,7 +10,7 @@ from django.db.models import Count, Sum, F, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
 import calendar
 import json
-from .models import CustomUser, Role
+from .models import CustomUser, Notification, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
 from appointments.models import Appointment, IPDAdmission, Invoice
 from patient.models import Patient
@@ -350,19 +351,25 @@ def error_page(request, error_message, status=400):
     return render(request, 'main/error.html', {'error_message': error_message}, status=status)
 
 # Notification Handler
-@login_required
-def notifications_view(request):
-    all_messages = messages.get_messages(request)
-    notification = [
-        {"message": str(msg), "tags": msg.tags} for msg in all_messages
-    ]
-    count = len([msg for msg in all_messages if msg.tags in ["success", "error"]])
-    return JsonResponse({"notifications": notification, "count": count})
+def send_notification_to_all(message, tags='info'):
+    User = settings.AUTH_USER_MODEL
+    users = User.objects.all()
+    for user in users:
+        Notification.objects.create(user=user, message=message, tags=tags)
 
 @login_required
-def notification_as_read(request):
+def notifications_view(request):
+    notifications = Notification.objects.filter(user=request.user, is_read=False)
+    notification_data = [
+        {"id": n.id, "message": n.message, "tags": n.tags, "created_at": n.created_at}
+        for n in notifications
+    ]
+    return JsonResponse({"notifications": notification_data, "count": len(notification_data)})
+
+@login_required
+def mark_notification_as_read(request):
     if request.method == "POST":
-        list(messages.get_messages(request))
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"}, status=400)
 

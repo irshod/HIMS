@@ -205,30 +205,6 @@
     {% endif %}
 
     <!-- Settings Section -->
-    {% if request.user|has_role:'Admin' %}
-      <li>
-        <a href="#nav-pages" data-bs-toggle="collapse" aria-expanded="false">
-          <span class="fas fa-cog"></span> Settings
-          <span class="fas fa-caret-down float-end"></span>
-        </a>
-        <ul class="collapse list-unstyled" id="nav-pages">
-          <li>
-            <a href="#"><span class="fas fa-user-cog"></span> Edit Profile</a>
-          </li>
-
-          <li>
-            <a href="#"><span class="fas fa-database"></span> Backup</a>
-          </li>
-        </ul>
-      </li>
-    {% endif %}
   </ul>
-
-  <!-- Sidebar Help Section -->
-  {% comment %} <div class="sidebar-help animated fadeIn">
-    <h5><span class="fas fa-comments"></span> Need Help</h5>
-    <h6><span class="fas fa-mobile-alt"></span> +992 92 764 11 17</h6>
-    <h6><span class="fas fa-envelope"></span> mkoziev@na.edu</h6>
-  </div> {% endcomment %}
 </nav>
 <!-- /Sidebar -->

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
+from django.conf import settings
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -54,3 +55,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
     def has_role(self, role_name):
         return self.roles.filter(name=role_name).exists()
+    
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Use the custom user model
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    message = models.TextField()
+    tags = models.CharField(max_length=50, default='info')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.message
