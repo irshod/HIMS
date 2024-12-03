@@ -1,43 +1,33 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load static %}
 
 {% block title %}
-    Edit Service | HIMS
-{% endblock title %}
+  Edit Service | HIMS
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="widget-area-2 proclinic-box-shadow">
-    <h3 class="widget-title">Edit Service</h3>
-    <form method="post" action="">
-      {% csrf_token %}
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          {{ form.name.label_tag }}
-          {{ form.name }}
+  <div class="container-fluid">
+    <div class="widget-area-2 proclinic-box-shadow">
+      <h3 class="widget-title">Edit Service</h3>
+      <form method="post" action="">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group col-md-6">{{ form.name.label_tag }}
+            {{ form.name }}</div>
+          <div class="form-group col-md-6">{{ form.price.label_tag }}
+            {{ form.price }}</div>
+          <div class="form-group col-md-6">{{ form.duration.label_tag }}
+            {{ form.duration }}</div>
+          <div class="form-group col-md-12">{{ form.description.label_tag }}
+            {{ form.description }}</div>
+          <div class="form-group col-md-12">{{ form.special_notes.label_tag }}
+            {{ form.special_notes }}</div>
+          <div class="form-group col-md-6 mb-3">
+            <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+            <a href="{% url 'list_service' %}" class="btn btn-secondary btn-lg">Cancel</a>
+          </div>
         </div>
-        <div class="form-group col-md-6">
-          {{ form.price.label_tag }}
-          {{ form.price }}
-        </div>
-        <div class="form-group col-md-6">
-          {{ form.duration.label_tag }}
-          {{ form.duration }}
-        </div>
-        <div class="form-group col-md-12">
-          {{ form.description.label_tag }}
-          {{ form.description }}
-        </div>
-        <div class="form-group col-md-12">
-          {{ form.special_notes.label_tag }}
-          {{ form.special_notes }}
-        </div>
-        <div class="form-group col-md-6 mb-3">
-          <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
-          <a href="{% url 'list_service' %}" class="btn btn-secondary btn-lg">Cancel</a>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
-{% endblock content %}
+{% endblock %}

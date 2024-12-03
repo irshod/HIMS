@@ -36,11 +36,11 @@ class BaseContext(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        abstract = True  # Mark as abstract
+        abstract = True
 
     def calculate_total_cost(self):
         """Calculate the total cost of all associated services."""
-        if self.id:  # Ensure the object is saved before accessing the ManyToManyField
+        if self.id:
             self.total_cost = sum(service.price for service in self.services.all())
             self.save(update_fields=['total_cost'])
 
@@ -69,13 +69,13 @@ class Appointment(BaseContext):
 
     def calculate_total_cost(self):
         """Calculate the total cost of all associated services."""
-        if self.id:  # Ensure the object is saved before accessing the ManyToManyField
+        if self.id:
             self.total_cost = sum(service.price for service in self.services.all())
 
     def save(self, *args, **kwargs):
         """Override save to calculate total cost."""
-        super().save(*args, **kwargs)  # Save first to ensure `id` is assigned
-        self.calculate_total_cost()    # Calculate the total cost
+        super().save(*args, **kwargs)  
+        self.calculate_total_cost()    
         super().save(update_fields=['total_cost'])
 
     def mark_as_active(self):

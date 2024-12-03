@@ -1,7 +1,6 @@
 from django import forms
 from .models import Patient, PatientMedicalHistory, PatientInsurance, Prescription, Diagnosis
 
-
 class PatientRegistrationForm(forms.ModelForm):
     class Meta:
         model = Patient
@@ -29,9 +28,6 @@ class PatientRegistrationForm(forms.ModelForm):
             'emergency_contact_email': 'Emergency Contact Email',
         }
 
-
-
-
 class PrescriptionForm(forms.ModelForm):
     class Meta:
         model = Prescription
@@ -58,8 +54,6 @@ class PrescriptionForm(forms.ModelForm):
             'recommendations': 'Additional Recommendations',
         }
 
-
-
 class DiagnosisForm(forms.ModelForm):
     class Meta:
         model = Diagnosis
@@ -71,7 +65,6 @@ class DiagnosisForm(forms.ModelForm):
             'treatment_notes': forms.Textarea(attrs={'class': 'form-control'}),
         }
 
-
 class PatientMedicalHistoryForm(forms.ModelForm):
     class Meta:
         model = PatientMedicalHistory
@@ -80,7 +73,6 @@ class PatientMedicalHistoryForm(forms.ModelForm):
             'diagnosis_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Additional details about the condition'}),
         }
-
 
 class PatientInsuranceForm(forms.ModelForm):
     class Meta:

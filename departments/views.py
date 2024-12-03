@@ -2,14 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
-
 from appointments.models import IPDAdmission
 from main.decorators import role_required
 from .models import Service, Department, DoctorProfile, NurseProfile, StaffAvailability, Floor, Room, Bed
 from .forms import ServiceForm, DepartmentForm, DoctorProfileForm, NurseProfileForm, FloorForm, RoomForm, BedForm
-from django.http import Http404, JsonResponse
-
-
+from django.http import JsonResponse
 
 # Department Management
 @login_required
@@ -27,7 +24,7 @@ def view_department(request, department_id):
     # Fetch doctors and their statuses
     doctors_with_status = []
     for doctor in department.doctors.all():
-        status = doctor.staffavailability.first()  # Get the first availability record if exists
+        status = doctor.staffavailability.first()  
         doctors_with_status.append({
             'doctor': doctor,
             'status': status
@@ -44,8 +41,8 @@ def add_department(request):
         form = DepartmentForm(request.POST)
         if form.is_valid():
             department = form.save()
-            doctor_status = request.POST.get('doctor_status', 'available')  # Get doctor status from the request
-            nurse_status = request.POST.get('nurse_status', 'available')  # Get nurse status from the request
+            doctor_status = request.POST.get('doctor_status', 'available')  
+            nurse_status = request.POST.get('nurse_status', 'available')  
 
             for doctor in department.doctors.all():
                 StaffAvailability.objects.create(user=doctor, status=doctor_status)
@@ -69,8 +66,8 @@ def edit_department(request, department_id):
         form = DepartmentForm(request.POST, instance=department)
         if form.is_valid():
             department = form.save()
-            doctor_status = request.POST.get('doctor_status', 'available')  # Get doctor status from the request
-            nurse_status = request.POST.get('nurse_status', 'available')  # Get nurse status from the request
+            doctor_status = request.POST.get('doctor_status', 'available')  
+            nurse_status = request.POST.get('nurse_status', 'available')  
 
             # Update availability status for doctors
             for doctor in department.doctors.all():
@@ -150,21 +147,21 @@ def delete_service(request, service_id):
 @login_required
 def list_doctor(request):
     doctors = DoctorProfile.objects.select_related('user').prefetch_related('assigned_services')
-    paginator = Paginator(doctors, 10)  # Pagination with 10 items per page
+    paginator = Paginator(doctors, 10)  
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     return render(request, 'doctors/doctor_list.html', {'page_obj': page_obj})
 
 @login_required
 def add_doctor(request):
-    service_queryset = Service.objects.all()  # Fetch available services
+    service_queryset = Service.objects.all()
     if request.method == 'POST':
         form = DoctorProfileForm(request.POST)
         if form.is_valid():
-            doctor = form.save(commit=False)  # Save the doctor object without committing
-            doctor.save()  # Commit to the database
-            form.save_m2m()  # Save many-to-many relationships, including assigned_services
-            # Save default availability
+            doctor = form.save(commit=False) 
+            doctor.save()  
+            form.save_m2m() 
+            
             availability = form.cleaned_data.get('default_availability', 'available')
             StaffAvailability.objects.create(
                 user=doctor.user,
@@ -181,20 +178,18 @@ def add_doctor(request):
 @login_required
 def edit_doctor(request, doctor_id):
     doctor = get_object_or_404(DoctorProfile, id=doctor_id)
-    service_queryset = Service.objects.all()  # Fetch all available services
+    service_queryset = Service.objects.all()
 
     if request.method == 'POST':
         form = DoctorProfileForm(request.POST, instance=doctor)
         if form.is_valid():
-            doctor = form.save(commit=False)  # Save the doctor without committing
-            doctor.save()  # Save to the database
-            form.save_m2m()  # Save many-to-many relationships (e.g., assigned_services)
-
-            # Update availability without assigning a default department
+            doctor = form.save(commit=False)
+            doctor.save()  
+            form.save_m2m()  
             availability = form.cleaned_data.get('default_availability', 'available')
             StaffAvailability.objects.update_or_create(
                 user=doctor.user,
-                defaults={'status': availability}  # Removed department from update_or_create
+                defaults={'status': availability}  
             )
 
             messages.success(request, "Doctor profile updated successfully.")
@@ -219,14 +214,14 @@ def view_doctor(request, doctor_id):
 @login_required
 def list_nurse(request):
     nurses = NurseProfile.objects.all()
-    paginator = Paginator(nurses, 10)  # Pagination with 10 items per page
+    paginator = Paginator(nurses, 10)  
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     return render(request, 'nurses/nurse_list.html', {'page_obj': page_obj})
 
 @login_required
 def add_nurse(request):
-    service_queryset = Service.objects.all()  # Fetch all available services
+    service_queryset = Service.objects.all()  
     if request.method == 'POST':
         form = NurseProfileForm(request.POST)
         if form.is_valid():
@@ -244,7 +239,7 @@ def add_nurse(request):
 @login_required
 def edit_nurse(request, nurse_id):
     nurse = get_object_or_404(NurseProfile, id=nurse_id)
-    service_queryset = Service.objects.all()  # Fetch all available services
+    service_queryset = Service.objects.all()  
     if request.method == 'POST':
         form = NurseProfileForm(request.POST, instance=nurse)
         if form.is_valid():
@@ -360,7 +355,7 @@ def delete_room(request, room_id):
         room.delete()
         messages.success(request, "Room deleted successfully.")
         return redirect('list_room')
-    return render(request, 'beds/room_delete.html', {'room': room})  # Use a separate delete confirmation template
+    return render(request, 'beds/room_delete.html', {'room': room})
 
 # Bed Views
 @login_required
@@ -387,8 +382,6 @@ def list_bed(request):
 @role_required(['Admin', 'Doctor', 'Nurse'])
 def bed_detail(request, bed_id):
     bed = get_object_or_404(Bed, id=bed_id)
-
-    # Check if there is an active IPDAdmission associated with the bed
     ipd_admission = IPDAdmission.objects.filter(bed=bed, status='admitted').first()
 
     if ipd_admission:
@@ -398,7 +391,7 @@ def bed_detail(request, bed_id):
 
     context = {
         'bed': bed,
-        'ipd_admission': ipd_admission,  # Pass the admission record if it exists
+        'ipd_admission': ipd_admission,  
     }
     return render(request, 'beds/bed_detail.html', context)
 

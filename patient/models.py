@@ -8,7 +8,6 @@ class Patient(models.Model):
         ('F', 'Female'),
         ('O', 'Other'),
     ]
-
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     date_of_birth = models.DateField()
@@ -24,7 +23,6 @@ class Patient(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.contact_number})"
-
 
 class Prescription(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
@@ -49,7 +47,6 @@ class Diagnosis(models.Model):
     def __str__(self):
         return f"Diagnosis for {self.appointment.patient.first_name} on {self.date}"
 
-
 class PatientMedicalHistory(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='medical_history')
     condition = models.CharField(max_length=255, help_text="Medical condition or diagnosis")
@@ -59,7 +56,6 @@ class PatientMedicalHistory(models.Model):
 
     def __str__(self):
         return f"{self.condition} for {self.patient.first_name} {self.patient.last_name}"
-
 
 class PatientInsurance(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='insurance_details')

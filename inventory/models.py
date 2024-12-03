@@ -8,7 +8,6 @@ class Medication(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
-        # Return a string combining name and dosage
         return f"{self.name} ({self.dosage})" if self.dosage else self.name
 
     def is_low_stock(self):

@@ -24,9 +24,7 @@
             <td>
               <a href="{% url 'consumable_update' consumable.id %}" class="btn btn-sm btn-warning">Edit</a>
 
-              <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ consumable.name }}" data-url="{% url 'consumable_delete' consumable.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE
-              </button>
-              
+              <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ consumable.name }}" data-url="{% url 'consumable_delete' consumable.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE</button>
             </td>
           </tr>
         {% endfor %}

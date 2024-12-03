@@ -13,7 +13,7 @@ from .models import CustomUser, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
 from appointments.models import Appointment, IPDAdmission, Invoice
 from patient.models import Patient
-from departments.models import Bed, Department, DoctorProfile, NurseProfile
+from departments.models import Department, DoctorProfile, NurseProfile
 from inventory.models import Medication, Consumable
 from .decorators import role_required
 
@@ -94,7 +94,7 @@ def admin_dashboard(request):
         "monthly": [["Month", "Revenue"]] + [[calendar.month_name[item['month'].month], float(item['total'])] for item in revenue_monthly],
         "yearly": [["Year", "Revenue"]] + [[item['year'].year, float(item['total'])] for item in revenue_yearly],
     }
-    # Example recent activity data
+    
     recent_activities = [
         {"timestamp": p.created_at, "message": f"New patient registered: {p.first_name} {p.last_name}"}
         for p in Patient.objects.order_by("-created_at")[:5]
@@ -136,22 +136,18 @@ def doctor_dashboard(request):
         appointment_date__date=now().date()
     ).count()
 
-    # IPD Patients (Admitted only)
     ipd_patients = IPDAdmission.objects.filter(
         doctor=request.user, status='admitted'
     ).select_related('patient', 'room', 'floor')
 
-    # Pending Patients
     pending_patients = Appointment.objects.filter(
         doctor=request.user, status='pending'
     ).select_related('patient')
 
-    # Today's Patients
     todays_patients = Appointment.objects.filter(
         doctor=request.user, appointment_date__date=now().date()
     ).select_related('patient')
 
-    # All Patients Treated by This Doctor
     all_patients = Patient.objects.filter(
         appointment_related__doctor=request.user
     ).distinct()
@@ -169,20 +165,16 @@ def doctor_dashboard(request):
 
 @role_required(['Nurse'])
 def nurse_dashboard(request):
-    # Fetch departments where the nurse is assigned
     departments = Department.objects.filter(nurses=request.user)
 
-    # Fetch assigned patients via departments
     assigned_patients = Patient.objects.filter(
         ipdadmission_related__department__in=departments
     ).distinct()
 
-    # Fetch admitted IPD patients linked to the nurse's departments
     admitted_patients = IPDAdmission.objects.filter(
         department__in=departments, status='admitted'
     ).select_related('patient', 'room', 'floor')
 
-    # Fetch today's appointments linked to the nurse's departments
     todays_appointments = Appointment.objects.filter(
         department__in=departments,
         appointment_date__date=now().date()
@@ -233,8 +225,6 @@ def receptionist_dashboard(request):
 
     return render(request, 'main/dashboards/receptionist_dashboard.html', context)
 
-
-
 # User Management
 @role_required(['Admin'])
 def list_user(request):
@@ -253,7 +243,6 @@ def view_user(request, user_id):
     }
     return render(request, 'main/users/user_view.html', context)
     
-
 @role_required(['Admin'])
 def add_user(request):
     if request.method == 'POST':
@@ -309,7 +298,6 @@ def view_role(request, role_id):
     role = get_object_or_404(Role, id=role_id)
     permissions = role.permissions.all()
     return render(request, 'main/roles/role_view.html', {'role': role, 'permissions': permissions})
-
 
 @role_required(['Admin'])
 def add_role(request):
@@ -378,14 +366,11 @@ def notification_as_read(request):
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"}, status=400)
 
-
-
 def search_results(request):
-    query = request.GET.get('query', '').strip()  # Get the search query from the request
+    query = request.GET.get('query', '').strip() 
     patients = []
     
     if query:
-        # Assuming you have Patient and Doctor models
         from patient.models import Patient
         patients = Patient.objects.filter(
             Q(first_name__icontains=query) | Q(last_name__icontains=query)
@@ -399,7 +384,6 @@ def user_profile_view(request):
     doctor_profile = None
     nurse_profile = None
 
-    # Check if the user has a doctor or nurse profile
     if user.has_role('Doctor'):
         doctor_profile = DoctorProfile.objects.filter(user=user).first()
     elif user.has_role('Nurse'):

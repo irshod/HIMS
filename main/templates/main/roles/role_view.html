@@ -1,35 +1,35 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load static %}
 
 {% block title %}
-    View Role | HIMS
-{% endblock title %}
+  View Role | HIMS
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="widget-area-2 proclinic-box-shadow">
-    <h3 class="widget-title">Role Details</h3>
-    <table class="table table-striped">
-      <tr>
-        <th>Role ID</th>
-        <td>{{ role.id }}</td>
-      </tr>
-      <tr>
-        <th>Role Name</th>
-        <td>{{ role.name }}</td>
-      </tr>
-      <tr>
-        <th>Permissions</th>
-        <td>
-          {% for permission in permissions %}
-            {{ permission.name }}{% if not forloop.last %}, {% endif %}
-          {% empty %}
-            No Permissions Assigned
-          {% endfor %}
-        </td>
-      </tr>
-    </table>
-    <a href="{% url 'role_list' %}" class="btn btn-secondary">Back to Role List</a>
+  <div class="container-fluid">
+    <div class="widget-area-2 proclinic-box-shadow">
+      <h3 class="widget-title">Role Details</h3>
+      <table class="table table-striped">
+        <tr>
+          <th>Role ID</th>
+          <td>{{ role.id }}</td>
+        </tr>
+        <tr>
+          <th>Role Name</th>
+          <td>{{ role.name }}</td>
+        </tr>
+        <tr>
+          <th>Permissions</th>
+          <td>
+            {% for permission in permissions %}
+              {{ permission.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              No Permissions Assigned
+            {% endfor %}
+          </td>
+        </tr>
+      </table>
+      <a href="{% url 'role_list' %}" class="btn btn-secondary">Back to Role List</a>
+    </div>
   </div>
-</div>
-{% endblock content %}
+{% endblock %}

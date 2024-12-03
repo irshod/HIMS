@@ -1,22 +1,22 @@
 {% extends 'main/base.html' %}
 
 {% block title %}
-View Floor | HIMS
+  View Floor | HIMS
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+  <div class="container mt-4">
     <h1>Floor Details</h1>
     <table class="table table-bordered">
-        <tr>
-            <th>Floor Number</th>
-            <td>{{ floor.floor_number }}</td>
-        </tr>
-        <tr>
-            <th>Description</th>
-            <td>{{ floor.description }}</td>
-        </tr>
+      <tr>
+        <th>Floor Number</th>
+        <td>{{ floor.floor_number }}</td>
+      </tr>
+      <tr>
+        <th>Description</th>
+        <td>{{ floor.description }}</td>
+      </tr>
     </table>
     <a href="{% url 'list_floor' %}" class="btn btn-secondary">Back to List</a>
-</div>
+  </div>
 {% endblock %}

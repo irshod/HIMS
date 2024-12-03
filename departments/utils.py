@@ -3,9 +3,6 @@ from main.models import CustomUser
 
 
 def get_doctors_by_department(department_id):
-    """
-    Get all doctors associated with a department.
-    """
     try:
         department = Department.objects.get(id=department_id)
         return department.doctors.filter(roles__name__iexact='Doctor', is_active=True)
@@ -14,9 +11,6 @@ def get_doctors_by_department(department_id):
 
 
 def get_services_by_department(department_id):
-    """
-    Get all services associated with a department.
-    """
     try:
         department = Department.objects.get(id=department_id)
         return department.services.all()
@@ -25,7 +19,4 @@ def get_services_by_department(department_id):
 
 
 def get_users_by_role(role_name):
-    """
-    Get all users with a specific role.
-    """
     return CustomUser.objects.filter(roles__name__iexact=role_name, is_active=True)

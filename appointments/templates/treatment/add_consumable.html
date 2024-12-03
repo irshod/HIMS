@@ -1,13 +1,11 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
-
 {% block content %}
-<h2>Add Consumable</h2>
-<form method="post">
+  <h2>Add Consumable</h2>
+  <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Add Consumable</button>
-</form>
+  </form>
 {% endblock %}
-

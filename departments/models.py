@@ -1,6 +1,5 @@
 from django.db import models
 from main.models import CustomUser
-from django.core.exceptions import ValidationError
 
 class Department(models.Model):
     name = models.CharField(max_length=100)

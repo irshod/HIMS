@@ -28,7 +28,6 @@
               <a href="{% url 'medication_update' medication.id %}" class="btn btn-warning btn-sm">Edit</a>
 
               <button type="button" class="btn btn-danger btn-delete" data-item-name="{{ medication.name }}" data-url="{% url 'medication_delete' medication.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal"><span class="ti-trash"></span> DELETE</button>
-              
             </td>
           </tr>
         {% endfor %}

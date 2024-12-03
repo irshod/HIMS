@@ -14,6 +14,4 @@ urlpatterns = [
     path('consumables/add/', views.consumable_add, name='consumable_add'),
     path('consumables/<int:pk>/edit/', views.consumable_edit, name='consumable_update'),
     path('consumables/<int:pk>/delete/', views.consumable_delete, name='consumable_delete'),
-
-
 ]

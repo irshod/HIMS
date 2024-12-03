@@ -11,13 +11,16 @@ from .models import Patient
 from .forms import PrescriptionForm, PatientRegistrationForm, PatientMedicalHistoryForm, PatientInsuranceForm
 from django.db.models import Q
 from datetime import datetime, timedelta
+from reportlab.pdfgen import canvas
+from django.utils.timezone import datetime
+from django.http import HttpResponse
+from collections import defaultdict
 
 @login_required
 @user_passes_test(lambda u: has_permission(u, "view_patient"))
 def patient_list(request):
     query = Q()
-    
-    # Filter by age range
+
     age_min = request.GET.get('age_min')
     age_max = request.GET.get('age_max')
     if age_min:
@@ -27,7 +30,6 @@ def patient_list(request):
         age_max_date = datetime.now() - timedelta(days=int(age_max) * 365)
         query &= Q(date_of_birth__gte=age_max_date)
     
-    # Filter by creation time range
     created_after = request.GET.get('created_after')
     created_before = request.GET.get('created_before')
     if created_after:
@@ -35,13 +37,12 @@ def patient_list(request):
     if created_before:
         query &= Q(created_at__lte=created_before)
     
-    # Search by name
     search = request.GET.get('search', '')
     if search:
         query &= Q(first_name__icontains=search) | Q(last_name__icontains=search)
     
     patients = Patient.objects.filter(query).distinct()
-    paginator = Paginator(patients, 10)  # 10 patients per page
+    paginator = Paginator(patients, 10)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
@@ -89,12 +90,10 @@ def view_patient_profile(request, patient_id):
         "services": [],
     })
 
-    # Fetch and group diagnoses
     for diagnosis in Diagnosis.objects.filter(appointment__patient=patient):
         date = localdate(diagnosis.date)
         medical_history[date]["diagnosis"].append(diagnosis.treatment_notes)
 
-    # Fetch treatment history
     for treatment in TreatmentHistory.objects.filter(appointment__patient=patient).select_related('doctor'):
         date = localdate(treatment.date)
         medical_history[date]["notes"].append(treatment.treatment_notes)
@@ -107,14 +106,13 @@ def view_patient_profile(request, patient_id):
             for consumable in treatment.treatment_consumables.all()
         ])
 
-    # Fetch services/tests
     for appointment in Appointment.objects.filter(patient=patient).prefetch_related('services'):
         date = localdate(appointment.appointment_date)
         medical_history[date]["services"].extend(appointment.services.all())
 
     return render(request, 'patient/patient_profile.html', {
         'patient': patient,
-        'medical_history': dict(medical_history),  # Pass as dictionary
+        'medical_history': dict(medical_history), 
     })
 
 
@@ -192,8 +190,6 @@ from django.utils.timezone import localdate
 @user_passes_test(lambda u: has_permission(u, "view_patient"))
 def view_medical_history(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
-
-    # Consolidate history from all sources
     history_by_date = defaultdict(lambda: {
         "diagnosis": [],
         "services": [],
@@ -202,12 +198,10 @@ def view_medical_history(request, patient_id):
         "notes": None,
     })
 
-    # Fetch and group diagnoses
     for diagnosis in Diagnosis.objects.filter(appointment__patient=patient):
         date = localdate(diagnosis.date)
         history_by_date[date]["diagnosis"].append(diagnosis.treatment_notes)
 
-    # Fetch treatment history
     for treatment in TreatmentHistory.objects.filter(appointment__patient=patient).select_related('doctor'):
         date = localdate(treatment.date)
         history_by_date[date]["notes"] = treatment.treatment_notes
@@ -220,12 +214,10 @@ def view_medical_history(request, patient_id):
             for consumable in treatment.treatment_consumables.all()
         ])
 
-    # Fetch prescriptions
     for prescription in Prescription.objects.filter(patient=patient):
         date = localdate(prescription.created_at)
         history_by_date[date]["medications"].append(f"{prescription.medication} (Prescribed)")
 
-    # Fetch services/tests
     for appointment in Appointment.objects.filter(patient=patient).prefetch_related('services'):
         date = localdate(appointment.appointment_date)
         history_by_date[date]["services"].extend([service.name for service in appointment.services.all()])
@@ -236,9 +228,7 @@ def view_medical_history(request, patient_id):
     })
 
 @login_required
-@user_passes_test(lambda u: has_permission(u, "add_patientinsurance"))
 def add_insurance(request, patient_id):
-    """Add insurance details for a patient."""
     patient = get_object_or_404(Patient, id=patient_id)
     if request.method == 'POST':
         form = PatientInsuranceForm(request.POST)
@@ -257,9 +247,7 @@ def add_insurance(request, patient_id):
     })
 
 @login_required
-@user_passes_test(lambda u: has_permission(u, "view_patientinsurance"))
 def view_insurance(request, patient_id):
-    """View insurance details for a patient."""
     patient = get_object_or_404(Patient, id=patient_id)
     insurance_details = patient.insurance_details.all().order_by('-coverage_start_date')
     return render(request, 'patient/insurance_details.html', {
@@ -268,20 +256,11 @@ def view_insurance(request, patient_id):
     })
 
 
-from reportlab.pdfgen import canvas
-from django.utils.timezone import datetime
-from django.http import HttpResponse
-from collections import defaultdict
-
 @role_required(['Doctor', 'Nurse', 'Receptionist'])
 def generate_individual_pdf(request, appointment_id, date):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     patient = appointment.patient
-
-    # Parse the date
     date_object = datetime.strptime(date, "%Y-%m-%d").date()
-
-    # Build history_by_date (filtered by date)
     history_by_date = defaultdict(lambda: {
         "diagnosis": [],
         "services": [],
@@ -291,23 +270,19 @@ def generate_individual_pdf(request, appointment_id, date):
         "notes": None,
     })
 
-    # Fetch diagnoses
     for diagnosis in Diagnosis.objects.filter(appointment=appointment):
         history_by_date[date_object]["diagnosis"].append(diagnosis)
 
-    # Fetch treatment history
     for treatment in TreatmentHistory.objects.filter(appointment=appointment):
         history_by_date[date_object]["doctor"] = treatment.doctor
         history_by_date[date_object]["notes"] = treatment.treatment_notes
         history_by_date[date_object]["medications"].extend(treatment.treatment_medications.all())
         history_by_date[date_object]["consumables"].extend(treatment.treatment_consumables.all())
 
-    # Group services/tests by the appointment date
     if localdate(appointment.appointment_date) == date_object:
         for service in appointment.services.all():
             history_by_date[date_object]["services"].append(service)
 
-    # Generate PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="medical_history_{date}.pdf"'
 
@@ -320,7 +295,6 @@ def generate_individual_pdf(request, appointment_id, date):
 
     details = history_by_date[date_object]
     y = 740
-
     if details["doctor"]:
         p.drawString(100, y, f"Doctor: {details['doctor'].get_full_name()}")
         y -= 20
@@ -346,7 +320,6 @@ def generate_individual_pdf(request, appointment_id, date):
     if y < 50:
         p.showPage()
         y = 740
-
     p.showPage()
     p.save()
     return response

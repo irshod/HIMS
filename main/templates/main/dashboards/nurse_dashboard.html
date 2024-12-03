@@ -1,79 +1,66 @@
 {% extends 'main/base.html' %}
 
 {% block title %}
-    Nurse Dashboard | HIMS
+  Nurse Dashboard | HIMS
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+  <div class="container mt-4">
     <h1 class="text-center mb-4">Nurse Dashboard</h1>
-
     <!-- Assigned Patients Section -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Assigned Patients</h3>
-            <ul class="list-group">
-                {% for patient in assigned_patients %}
-                    <li class="list-group-item">
-                        <a href="{% url 'patient_profile' patient.id %}">
-                            {{ patient.first_name }} {{ patient.last_name }}
-                        </a>
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No assigned patients</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>Assigned Patients</h3>
+        <ul class="list-group">
+          {% for patient in assigned_patients %}
+            <li class="list-group-item">
+              <a href="{% url 'patient_profile' patient.id %}">{{ patient.first_name }} {{ patient.last_name }}</a>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center">No assigned patients</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-
     <!-- Admitted Patients Section -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Admitted Patients (IPD)</h3>
-            <ul class="list-group">
-                {% for admission in admitted_patients %}
-                    <li class="list-group-item">
-                        Patient: {{ admission.patient.first_name }} {{ admission.patient.last_name }} - 
-                        Room: {{ admission.room.name }} (Floor: {{ admission.floor.floor_number }})
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No admitted patients</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>Admitted Patients (IPD)</h3>
+        <ul class="list-group">
+          {% for admission in admitted_patients %}
+            <li class="list-group-item">Patient: {{ admission.patient.first_name }} {{ admission.patient.last_name }} - Room: {{ admission.room.name }} (Floor: {{ admission.floor.floor_number }})</li>
+          {% empty %}
+            <li class="list-group-item text-center">No admitted patients</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-
     <!-- Pending Tasks Section -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Pending Tasks</h3>
-            <ul class="list-group">
-                {% for task in pending_tasks %}
-                    <li class="list-group-item">
-                        {{ task.description }} - Due: {{ task.due_date|date:"Y-m-d H:i" }}
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No pending tasks</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>Pending Tasks</h3>
+        <ul class="list-group">
+          {% for task in pending_tasks %}
+            <li class="list-group-item">{{ task.description }} - Due: {{ task.due_date|date:'Y-m-d H:i' }}</li>
+          {% empty %}
+            <li class="list-group-item text-center">No pending tasks</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-
     <!-- Today's Appointments Section -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Today's Appointments</h3>
-            <ul class="list-group">
-                {% for appointment in todays_appointments %}
-                    <li class="list-group-item">
-                        Appointment with {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} 
-                        at {{ appointment.appointment_date|time:"H:i" }}
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No appointments scheduled for today</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>Today's Appointments</h3>
+        <ul class="list-group">
+          {% for appointment in todays_appointments %}
+            <li class="list-group-item">Appointment with {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
+              at {{ appointment.appointment_date|time:'H:i' }}</li>
+          {% empty %}
+            <li class="list-group-item text-center">No appointments scheduled for today</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

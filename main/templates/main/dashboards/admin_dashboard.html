@@ -66,8 +66,6 @@
         </div>
       </div>
 
-      <!-- Admissions Charts -->
-
       <!-- Revenue Chart -->
       <div class="col-md-12">
         <div class="card shadow-sm mb-4">
@@ -136,8 +134,8 @@
     
     let admissionsData = JSON.parse('{{ admissions_data|escapejs }}')
     let revenueData = JSON.parse('{{ revenue_data|escapejs }}')
-    let currentAdmissionsData = admissionsData.daily // Default to daily admissions
-    let currentRevenueData = revenueData.monthly // Default to monthly revenue
+    let currentAdmissionsData = admissionsData.daily
+    let currentRevenueData = revenueData.monthly 
     
     function initCharts() {
       drawAdmissionsChart(currentAdmissionsData)

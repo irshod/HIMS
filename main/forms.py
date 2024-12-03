@@ -13,14 +13,14 @@ class RoleCreationForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Role  # Updated to use Role model
+        model = Role  
         fields = ['name', 'permissions']
         labels = {'name': 'Role Name'}
 
 
 class CustomUserCreationForm(DjangoUserCreationForm):
     role = forms.ModelChoiceField(
-        queryset=Role.objects.all(),  # Use Role if custom model
+        queryset=Role.objects.all(),  
         required=True,
         label="Role"
     )

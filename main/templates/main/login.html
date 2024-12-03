@@ -1,57 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
 
     <!-- Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    
-    <!-- Font Awesome for Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    
-
-<!-- Login Form with Light Blue Background -->
-<div class="bg-secondary bg-gradient py-3 py-md-5">
-    <div class="container">
-      <div class="row justify-content-md-center">
-        <div class="col-12 col-md-11 col-lg-8 col-xl-7 col-xxl-6">
-          <div class="bg-secondary bg-gradient p-4 p-md-5 rounded shadow-sm">
-            <form method="post" action="#!">
-              {% csrf_token %}
-              <div class="row gy-3 gy-md-4 overflow-hidden">
-                <div class="col-12">
-                  <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fa-solid fa-user"></i> <!-- Replaced with Font Awesome User Icon -->
-                    </span>
-                    <input type="text" class="form-control" name="username" id="username" required>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="bg-secondary bg-gradient py-3 py-md-5">
+      <div class="container">
+        <div class="row justify-content-md-center">
+          <div class="col-12 col-md-11 col-lg-8 col-xl-7 col-xxl-6">
+            <div class="bg-secondary bg-gradient p-4 p-md-5 rounded shadow-sm">
+              <form method="post" action="#!">
+                {% csrf_token %}
+                <div class="row gy-3 gy-md-4 overflow-hidden">
+                  <div class="col-12">
+                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                      <input type="text" class="form-control" name="username" id="username" required />
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="fa-solid fa-key"></i></span>
+                      <input type="password" class="form-control" name="password" id="password" required />
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="d-grid">
+                      <button class="btn btn-primary btn-lg" type="submit">Log In</button>
+                    </div>
                   </div>
                 </div>
-                <div class="col-12">
-                  <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fa-solid fa-key"></i> <!-- Font Awesome Key Icon -->
-                    </span>
-                    <input type="password" class="form-control" name="password" id="password" required>
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="d-grid">
-                    <button class="btn btn-primary btn-lg" type="submit">Log In</button>
-                  </div>
-                </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>

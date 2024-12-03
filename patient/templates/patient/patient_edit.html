@@ -1,42 +1,42 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load static %}
 {% load permissions %}
 
-{% block title %}Edit Patient | HIMS{% endblock title %}
-
+{% block title %}
+  Edit Patient | HIMS
+{% endblock %}
 
 {% block content %}
-{% if request.user|has_permission:"edit_patient" %}
-<div class="container-fluid">
-    <h3 class="widget-title">Edit Patient</h3>
-    <form method="post">
+  {% if request.user|has_permission:'edit_patient' %}
+    <div class="container-fluid">
+      <h3 class="widget-title">Edit Patient</h3>
+      <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Update Patient</button>
         <a href="{% url 'patient_list' %}" class="btn btn-secondary">Cancel</a>
-    </form>
-    
-    <!-- Display-only sections -->
-    <h4>Prescriptions</h4>
-    <ul>
-        {% for prescription in prescriptions %}
-            <li>{{ prescription.created_at|date:"Y-m-d" }}: {{ prescription.medication }} ({{ prescription.dosage }})</li>
-        {% empty %}
-            <p>No prescriptions available.</p>
-        {% endfor %}
-    </ul>
-    
-    <h4>Treatment History</h4>
-    <ul>
-        {% for history in treatment_history %}
-            <li>{{ history.date|date:"Y-m-d" }}: {{ history.treatment_notes }}</li>
-        {% empty %}
-            <p>No treatment history available.</p>
-        {% endfor %}
-    </ul>
-</div>
-{% else %}
-<div class="alert alert-warning">You do not have permission to access this page.</div>
-{% endif %}
-{% endblock content %}
+      </form>
 
+      <!-- Display-only sections -->
+      <h4>Prescriptions</h4>
+      <ul>
+        {% for prescription in prescriptions %}
+          <li>{{ prescription.created_at|date:'Y-m-d' }}: {{ prescription.medication }} ({{ prescription.dosage }})</li>
+        {% empty %}
+          <p>No prescriptions available.</p>
+        {% endfor %}
+      </ul>
+
+      <h4>Treatment History</h4>
+      <ul>
+        {% for history in treatment_history %}
+          <li>{{ history.date|date:'Y-m-d' }}: {{ history.treatment_notes }}</li>
+        {% empty %}
+          <p>No treatment history available.</p>
+        {% endfor %}
+      </ul>
+    </div>
+  {% else %}
+    <div class="alert alert-warning">You do not have permission to access this page.</div>
+  {% endif %}
+{% endblock %}

@@ -1,39 +1,35 @@
 {% extends 'main/base.html' %}
 
 {% block title %}
-Floor List | HIMS
+  Floor List | HIMS
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+  <div class="container mt-4">
     <h1>Floor List</h1>
     <a href="{% url 'add_floor' %}" class="btn btn-primary mb-4">Add New Floor</a>
     <table class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Floor Number</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for floor in floors %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ floor.floor_number }}</td>
-                <td>{{ floor.description }}</td>
-                <td>
-                    <a href="{% url 'edit_floor' floor.id %}" class="btn btn-primary btn-sm">Edit</a>
-                    <button type="button" class="btn btn-danger btn-sm btn-delete"
-                            data-item-name="Floor {{ floor.floor_number }}"
-                            data-url="{% url 'delete_floor' floor.id %}" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#deleteModal">Delete</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Floor Number</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for floor in floors %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ floor.floor_number }}</td>
+            <td>{{ floor.description }}</td>
+            <td>
+              <a href="{% url 'edit_floor' floor.id %}" class="btn btn-primary btn-sm">Edit</a>
+              <button type="button" class="btn btn-danger btn-sm btn-delete" data-item-name="Floor {{ floor.floor_number }}" data-url="{% url 'delete_floor' floor.id %}" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
-</div>
+  </div>
 {% endblock %}

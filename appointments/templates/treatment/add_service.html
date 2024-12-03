@@ -1,11 +1,11 @@
 {% extends 'main/base.html' %}
 
 {% block content %}
-<h2>Add Service</h2>
-<form method="post">
+  <h2>Add Service</h2>
+  <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Add Service</button>
     <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-secondary">Cancel</a>
-</form>
+  </form>
 {% endblock %}

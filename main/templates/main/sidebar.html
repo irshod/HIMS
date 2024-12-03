@@ -141,21 +141,21 @@
         </ul>
       </li>
     {% endif %}
-    
-     <!-- Bed List for Nurse -->
-     {% if request.user|has_role:'Nurse' %}
-     <li>
-       <a href="#nav-rooms" data-bs-toggle="collapse" aria-expanded="false">
-         <span class="fas fa-bed"></span> Bed Management
-         <span class="fas fa-caret-down float-end"></span>
-       </a>
-       <ul class="collapse list-unstyled" id="nav-rooms">
-         <li>
-          <a href="{% url 'list_bed' %}"><span class="fas fa-list"></span> Beds</a>
-         </li>
-       </ul>
-     </li>
-   {% endif %}
+
+    <!-- Bed List for Nurse -->
+    {% if request.user|has_role:'Nurse' %}
+      <li>
+        <a href="#nav-rooms" data-bs-toggle="collapse" aria-expanded="false">
+          <span class="fas fa-bed"></span> Bed Management
+          <span class="fas fa-caret-down float-end"></span>
+        </a>
+        <ul class="collapse list-unstyled" id="nav-rooms">
+          <li>
+            <a href="{% url 'list_bed' %}"><span class="fas fa-list"></span> Beds</a>
+          </li>
+        </ul>
+      </li>
+    {% endif %}
     <!-- Departments Section -->
     {% if request.user|has_role:'Admin' %}
       <li>

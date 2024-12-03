@@ -9,7 +9,6 @@ from inventory.models import Medication, Consumable
 User = get_user_model()
 
 # Appointment Form
-
 class AppointmentForm(forms.ModelForm):
     services = forms.ModelMultipleChoiceField(
         queryset=Service.objects.all(),
@@ -111,12 +110,11 @@ class AddServiceForm(forms.Form):
 
 
 # Add Medication Form
-
 class AddMedicationForm(forms.Form):
     medicine = forms.ModelChoiceField(
         queryset=Medication.objects.all(),  # Fetch all medications from the inventory
         label="Medicine",
-        widget=forms.Select(attrs={'class': 'form-control select2'})  # Enable searchable dropdown
+        widget=forms.Select(attrs={'class': 'form-control select2'})
     )
     quantity = forms.IntegerField(
         min_value=1, 
@@ -172,8 +170,6 @@ class AddConsumableForm(forms.Form):
         )
         return treatment_consumable
 
-
-
 # Treatment History Form
 class TreatmentHistoryForm(forms.ModelForm):
     class Meta:
@@ -187,8 +183,6 @@ class TreatmentHistoryForm(forms.ModelForm):
             'doctor': 'Doctor',
         }
 
-
-
 # Invoice Form
 class InvoiceForm(forms.ModelForm):
     class Meta:
@@ -200,7 +194,6 @@ class InvoiceForm(forms.ModelForm):
         labels = {
             'total_amount': 'Total Amount',
         }
-
 
 # Payment Form
 class PaymentForm(forms.ModelForm):

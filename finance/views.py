@@ -1,23 +1,18 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 from django.core.paginator import Paginator
 from departments.models import DoctorProfile
 from appointments.models import Appointment, Invoice, Payment
 from django.db.models import Sum
 
-
-
 def payment_report(request):
-    # Fetch all payments and include related data (invoice -> appointment -> patient)
     payments_list = Payment.objects.select_related(
         'invoice__appointment__patient'
     ).all()
 
-    # Apply pagination
-    paginator = Paginator(payments_list, 10)  # 5 payments per page
+    paginator = Paginator(payments_list, 10)  
     page_number = request.GET.get('page')
     payments = paginator.get_page(page_number)
 
-    # Calculate total revenue
     total_revenue = payments_list.aggregate(total=Sum('amount'))['total']
 
     return render(request, 'finance/payment_report.html', {
@@ -41,10 +36,8 @@ def doctor_earnings_report(request):
     doctors = DoctorProfile.objects.select_related('user').all()
 
     for doctor in doctors:
-        # Fetch appointments associated with the doctor
         appointments = Appointment.objects.filter(doctor=doctor.user)
 
-        # Calculate total earnings from services in appointments
         total_earnings = sum(
             service.price for appointment in appointments for service in appointment.services.all()
         )

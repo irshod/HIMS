@@ -1,75 +1,73 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Admit Patient | HIMS{% endblock title %}
+{% block title %}
+  Admit Patient | HIMS
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+  <div class="container-fluid">
     <h3 class="widget-title">Admit Patient to IPD</h3>
     <form method="post" id="admitPatientForm">
-        {% csrf_token %}
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                {{ form.patient.label_tag }}
-                {{ form.patient }}
-            </div>
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group col-md-6">{{ form.patient.label_tag }}
+          {{ form.patient }}</div>
+      </div>
+      <!-- Department and Doctor -->
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id_department">Department</label>
+          {{ form.department }}
         </div>
-        <!-- Department and Doctor -->
-        <div class="form-row">
-            <div class="form-group col-md-4">
-                <label for="id_department">Department</label>
-                {{ form.department }}
-            </div>
-            <div class="form-group col-md-4">
-                <label for="id_doctor">Doctor</label>
-                <select id="id_doctor" name="doctor" class="form-control">
-                    <option value="">Select a department first</option>
-                </select>
-            </div>
+        <div class="form-group col-md-4">
+          <label for="id_doctor">Doctor</label>
+          <select id="id_doctor" name="doctor" class="form-control">
+            <option value="">Select a department first</option>
+          </select>
         </div>
-        <!-- Floor, Room, and Bed -->
-        <div class="form-row">
-            <div class="form-group col-md-4">
-                <label for="id_floor">Floor</label>
-                {{ form.floor }}
-            </div>
-            <div class="form-group col-md-4">
-                <label for="id_room">Room</label>
-                <select id="id_room" name="room" class="form-control">
-                    <option value="">Select a floor first</option>
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                <label for="id_bed">Bed</label>
-                <select id="id_bed" name="bed" class="form-control">
-                    <option value="">Select a room first</option>
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                {{ form.status.label_tag }}
-                {{ form.status }}
-            </div>
+      </div>
+      <!-- Floor, Room, and Bed -->
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id_floor">Floor</label>
+          {{ form.floor }}
         </div>
-        <button type="submit" class="btn btn-primary">Admit Patient</button>
-        <a href="{% url 'ipd_admissions_list' %}" class="btn btn-secondary">Cancel</a>
-        {% if form.errors %}
+        <div class="form-group col-md-4">
+          <label for="id_room">Room</label>
+          <select id="id_room" name="room" class="form-control">
+            <option value="">Select a floor first</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="id_bed">Bed</label>
+          <select id="id_bed" name="bed" class="form-control">
+            <option value="">Select a room first</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">{{ form.status.label_tag }}
+          {{ form.status }}</div>
+      </div>
+      <button type="submit" class="btn btn-primary">Admit Patient</button>
+      <a href="{% url 'ipd_admissions_list' %}" class="btn btn-secondary">Cancel</a>
+      {% if form.errors %}
         <div class="alert alert-danger">
-            <a class="close" href="#" data-dismiss="alert">×</a>
-            <strong>There were errors with your submission:</strong>
-            <ul>
-                {% for field_name, errors in form.errors.items %}
-                    <li>
-                        <strong>{{ form.fields.field_name.label|default:field_name }}:</strong>
-                        <ul>
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                {% endfor %}
-            </ul>
+          <a class="close" href="#" data-dismiss="alert">×</a>
+          <strong>There were errors with your submission:</strong>
+          <ul>
+            {% for field_name, errors in form.errors.items %}
+              <li>
+                <strong>{{ form.fields.field_name.label|default:field_name }}:</strong>
+                <ul>
+                  {% for error in errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endfor %}
+          </ul>
         </div>
-        {% endif %}
-    </form>    
-</div>
-{% endblock content %}
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}

@@ -1,97 +1,90 @@
 {% extends 'main/base.html' %}
 
 {% block title %}
-    Doctor Dashboard | HIMS
+  Doctor Dashboard | HIMS
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+  <div class="container mt-4">
     <h1 class="text-center mb-4">Doctor Dashboard</h1>
 
     <!-- Quick Stats Section -->
     <div class="row text-center">
-        <div class="col-md-4">
-            <div class="card dashboard-card bg-primary text-white shadow-sm mb-3">
-                <div class="card-body">
-                    <h6 class="card-title">Total Appointments</h6>
-                    <h4 class="card-text">{{ total_appointments }}</h4>
-                </div>
-            </div>
+      <div class="col-md-4">
+        <div class="card dashboard-card bg-primary text-white shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="card-title">Total Appointments</h6>
+            <h4 class="card-text">{{ total_appointments }}</h4>
+          </div>
         </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card bg-success text-white shadow-sm mb-3">
-                <div class="card-body">
-                    <h6 class="card-title">Today's Appointments</h6>
-                    <h4 class="card-text">{{ appointments_today }}</h4>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card dashboard-card bg-success text-white shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="card-title">Today's Appointments</h6>
+            <h4 class="card-text">{{ appointments_today }}</h4>
+          </div>
         </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card bg-warning text-dark shadow-sm mb-3">
-                <div class="card-body">
-                    <h6 class="card-title">Admitted Patients</h6>
-                    <h4 class="card-text">{{ ipd_patients.count }}</h4>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card dashboard-card bg-warning text-dark shadow-sm mb-3">
+          <div class="card-body">
+            <h6 class="card-title">Admitted Patients</h6>
+            <h4 class="card-text">{{ ipd_patients.count }}</h4>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Pending Patients -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Pending Patients</h3>
-            <ul class="list-group">
-                {% for appointment in pending_patients %}
-                    <li class="list-group-item">
-                        {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - 
-                        Appointment on {{ appointment.appointment_date|date:"Y-m-d H:i" }}
-                        {% if appointment.id %}
-                            <a href="{% url 'add_diagnosis' appointment.id %}" class="btn btn-sm btn-primary">
-                                Add Diagnosis
-                            </a>
-                        {% else %}
-                            <span class="text-danger">No valid appointment ID</span>
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No pending patients</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>   
+      <div class="col-md-12">
+        <h3>Pending Patients</h3>
+        <ul class="list-group">
+          {% for appointment in pending_patients %}
+            <li class="list-group-item">
+              {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - Appointment on {{ appointment.appointment_date|date:'Y-m-d H:i' }}
+              {% if appointment.id %}
+                <a href="{% url 'add_diagnosis' appointment.id %}" class="btn btn-sm btn-primary">Add Diagnosis</a>
+              {% else %}
+                <span class="text-danger">No valid appointment ID</span>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center">No pending patients</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
 
     <!-- Today's Patients -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Today's Patients</h3>
-            <ul class="list-group">
-                {% for appointment in todays_patients %}
-                    <li class="list-group-item">
-                        {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - Appointment at {{ appointment.appointment_date|time:"H:i" }}
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No patients scheduled for today</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>Today's Patients</h3>
+        <ul class="list-group">
+          {% for appointment in todays_patients %}
+            <li class="list-group-item">{{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - Appointment at {{ appointment.appointment_date|time:'H:i' }}</li>
+          {% empty %}
+            <li class="list-group-item text-center">No patients scheduled for today</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
     <!-- All Patients -->
     <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>All Patients</h3>
-            <ul class="list-group">
-                {% for patient in all_patients %}
-                    <li class="list-group-item">
-                        <a href="{% url 'patient_profile' patient.id %}">
-                            {{ patient.first_name }} {{ patient.last_name }}
-                        </a>
-                    </li>
-                {% empty %}
-                    <li class="list-group-item text-center">No patients found</li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="col-md-12">
+        <h3>All Patients</h3>
+        <ul class="list-group">
+          {% for patient in all_patients %}
+            <li class="list-group-item">
+              <a href="{% url 'patient_profile' patient.id %}">{{ patient.first_name }} {{ patient.last_name }}</a>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-center">No patients found</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

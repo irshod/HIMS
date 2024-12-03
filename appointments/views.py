@@ -175,7 +175,6 @@ def view_admission(request, admission_id):
 @role_required(['Receptionist','Admin'])
 def generate_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    # Recalculate total cost of services dynamically
     appointment.calculate_total_cost()
     appointment.save()
 
@@ -206,7 +205,6 @@ def process_payment(request, invoice_id):
             body = json.loads(request.body)
             payment_amount = body.get('amount', 0)
 
-            # Ensure the payment amount is valid
             try:
                 payment_amount = Decimal(payment_amount)
             except (InvalidOperation, ValueError):
@@ -233,7 +231,6 @@ def process_payment(request, invoice_id):
 
             invoice.appointment.save(update_fields=["payment_status"])
 
-            # Return updated data
             total_paid = invoice.total_paid()
             outstanding_balance = invoice.outstanding_balance()
 
@@ -245,7 +242,6 @@ def process_payment(request, invoice_id):
             })
 
         except Exception as e:
-            # Improved logging for debugging
             print(f"Error processing payment: {e}")
             return JsonResponse({'success': False, 'error': 'Internal server error.'}, status=500)
 
@@ -291,7 +287,6 @@ def appointments_list(request):
     if request.user.roles.filter(name='Doctor').exists():
         query &= Q(doctor=request.user)
     elif request.user.roles.filter(name='Nurse').exists():
-        # You can add logic for nurses if needed, e.g., filter by department or assigned doctors
         pass
 
     # Additional filters from the request
@@ -312,7 +307,7 @@ def appointments_list(request):
     if department_id:
         query &= Q(department_id=department_id)
 
-    if status and status in dict(Appointment.STATUS_CHOICES):  # Validate against STATUS_CHOICES
+    if status and status in dict(Appointment.STATUS_CHOICES):
         query &= Q(status=status)
 
     if date_after:
@@ -333,11 +328,11 @@ def appointments_list(request):
         'patient_name': patient_name,
         'doctor_name': doctor_name,
         'department_id': department_id,
-        'current_status': status,  # Pass the current status filter
+        'current_status': status, 
         'date_after': date_after,
         'date_before': date_before,
         'departments': Department.objects.all(),
-        'status_choices': Appointment.STATUS_CHOICES,  # Pass STATUS_CHOICES to the template
+        'status_choices': Appointment.STATUS_CHOICES,
     }
 
     return render(request, 'appointments/appointment_list.html', context)
@@ -383,8 +378,8 @@ def view_appointment(request, appointment_id):
 
     return render(request, 'appointments/view_appointment.html', {
         'appointment': appointment,
-        'history_by_date': dict(history_by_date),  # Pass as a dictionary for template rendering
-        'current_appointment': appointment,  # Highlight the current appointment
+        'history_by_date': dict(history_by_date),
+        'current_appointment': appointment,
     })
 
 
@@ -431,7 +426,7 @@ def cancel_appointment(request, appointment_id):
 @role_required(['Receptionist','Admin','Doctor','Nurse'])
 def calendar_view(request):
     departments = Department.objects.all()
-    doctors = CustomUser.objects.filter(roles__name='Doctor')  # Filter only doctors
+    doctors = CustomUser.objects.filter(roles__name='Doctor') 
     return render(request, 'appointments/calendar.html', {
         'departments': departments,
         'doctors': doctors,
@@ -446,12 +441,8 @@ def appointment_events(request):
 
     # Filter appointments by date
     appointments = Appointment.objects.filter(appointment_date__date=selected_date)
-
-    # Apply department filter if provided
     if department_id:
         appointments = appointments.filter(department_id=department_id)
-
-    # Apply doctor filter if provided
     if doctor_id:
         appointments = appointments.filter(doctor_id=doctor_id)
 
@@ -513,7 +504,6 @@ def add_diagnosis(request, appointment_id):
 
 # Add service after consultation or when needed
 @login_required
-@user_passes_test(lambda u: u.has_perm('appointments.add_service'))
 def add_service_to_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     invoice, created = Invoice.objects.get_or_create(appointment=appointment)
@@ -521,13 +511,10 @@ def add_service_to_appointment(request, appointment_id):
     if request.method == 'POST':
         form = AddServiceForm(request.POST)
         if form.is_valid():
-            # Use the save method of the form
             service = form.save(commit=False) if hasattr(form, 'save') else None
             if service:
                 service.appointment = appointment
                 service.save()
-
-                # Update invoice total
                 invoice.total_amount += service.price
                 invoice.save()
 
@@ -552,18 +539,13 @@ def add_medication_to_treatment(request, appointment_id):
         form = AddMedicationForm(request.POST)
         if form.is_valid():
             medication_data = form.save(appointment)
-
-            # Update invoice total
             total_cost = medication_data['price'] * medication_data['quantity']
             invoice.total_amount += total_cost
             invoice.save()
-
-            # Update appointment total cost
             appointment.total_cost += total_cost
-            appointment.payment_status = 'unpaid'  # Mark as unpaid if the cost increases
+            appointment.payment_status = 'unpaid'
             appointment.save()
             
-            # Update payment status
             if invoice.outstanding_balance() == 0:
                 appointment.payment_status = "paid"
             else:
@@ -604,11 +586,9 @@ def update_total_cost(request, appointment_id):
 
 # Add Consumable to Treatment
 @login_required
-@user_passes_test(lambda u: u.has_perm("appointments.add_consumable"))
 def add_consumable_to_treatment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
-    # Ensure the appointment has an associated invoice
     invoice, created = Invoice.objects.get_or_create(appointment=appointment)
 
     if request.method == 'POST':
@@ -616,7 +596,6 @@ def add_consumable_to_treatment(request, appointment_id):
         if form.is_valid():
             consumable = form.save(appointment)
 
-            # Update invoice total if consumable has a price
             invoice.total_amount += consumable.total_cost
             invoice.save()
 
@@ -632,10 +611,8 @@ def add_consumable_to_treatment(request, appointment_id):
 
 
 def generate_medical_report(request, appointment_id):
-    # Fetch appointment
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
-    # Build history_by_date
     history_by_date = defaultdict(lambda: {
         "diagnosis": [],
         "services": [],
@@ -649,7 +626,6 @@ def generate_medical_report(request, appointment_id):
         date = localdate(diagnosis.date)
         history_by_date[date]["diagnosis"].append(diagnosis)
 
-    # Fetch and group treatment history
     for treatment in TreatmentHistory.objects.filter(appointment=appointment):
         date = localdate(treatment.date)
         history_by_date[date]["doctor"] = treatment.doctor
@@ -657,9 +633,6 @@ def generate_medical_report(request, appointment_id):
         history_by_date[date]["medications"].extend(treatment.treatment_medications.all())
         history_by_date[date]["consumables"].extend(treatment.treatment_consumables.all())
 
-   
-
-    # Populate services/tests
     for service in appointment.services.all():
         history_by_date[localdate(appointment.appointment_date)]["services"].append(service)
 
@@ -693,7 +666,7 @@ def generate_medical_report(request, appointment_id):
             y -= 15
         y -= 30
 
-        if y < 50:  # Create a new page if the content exceeds the page
+        if y < 50:  
             p.showPage()
             y = 740
 

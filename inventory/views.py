@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import Medication, Consumable
 from .forms import MedicationForm, ConsumableForm
 from django.http import JsonResponse
+
 # Medication Views
 def medication_list(request):
     medications = Medication.objects.all()
@@ -48,7 +49,7 @@ def medicine_details(request, medicine_id):
         return JsonResponse({
             'name': medicine.name,
             'dosage': medicine.dosage,
-            'price': str(medicine.unit_price),  # Ensure unit_price is converted to string
+            'price': str(medicine.unit_price),  
         })
     except Medication.DoesNotExist:
         return JsonResponse({'error': 'Medicine not found'}, status=404)

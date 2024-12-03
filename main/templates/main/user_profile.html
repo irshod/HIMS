@@ -1,38 +1,62 @@
-{% extends "main/base.html" %}
+{% extends 'main/base.html' %}
 
 {% block content %}
-<div class="container">
+  <div class="container">
     <h2>User Profile</h2>
     <div class="card">
-        <div class="card-body">
-            <h4 class="card-title">{{ user.get_full_name }}</h4>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Contact Number:</strong> {{ user.contact_number }}</p>
-            <p><strong>Address:</strong> {{ user.address }}</p>
-            <p><strong>Birthdate:</strong> {{ user.birthdate }}</p>
-        </div>
+      <div class="card-body">
+        <h4 class="card-title">{{ user.get_full_name }}</h4>
+        <p>
+          <strong>Email:</strong> {{ user.email }}
+        </p>
+        <p>
+          <strong>Contact Number:</strong> {{ user.contact_number }}
+        </p>
+        <p>
+          <strong>Address:</strong> {{ user.address }}
+        </p>
+        <p>
+          <strong>Birthdate:</strong> {{ user.birthdate }}
+        </p>
+      </div>
     </div>
 
     {% if doctor_profile %}
-    <div class="card mt-4">
+      <div class="card mt-4">
         <div class="card-body">
-            <h4 class="card-title">Doctor Profile</h4>
-            <p><strong>Specialty:</strong> {{ doctor_profile.specialty }}</p>
-            <p><strong>Qualification:</strong> {{ doctor_profile.qualification }}</p>
-            <p><strong>Employment Type:</strong> {{ doctor_profile.employment_type }}</p>
-            <p><strong>Base Salary:</strong> {{ doctor_profile.base_salary }}</p>
-            <p><strong>Salary Per Service:</strong> {{ doctor_profile.salary_per_service }}</p>
+          <h4 class="card-title">Doctor Profile</h4>
+          <p>
+            <strong>Specialty:</strong> {{ doctor_profile.specialty }}
+          </p>
+          <p>
+            <strong>Qualification:</strong> {{ doctor_profile.qualification }}
+          </p>
+          <p>
+            <strong>Employment Type:</strong> {{ doctor_profile.employment_type }}
+          </p>
+          <p>
+            <strong>Base Salary:</strong> {{ doctor_profile.base_salary }}
+          </p>
+          <p>
+            <strong>Salary Per Service:</strong> {{ doctor_profile.salary_per_service }}
+          </p>
         </div>
-    </div>
+      </div>
     {% elif nurse_profile %}
-    <div class="card mt-4">
+      <div class="card mt-4">
         <div class="card-body">
-            <h4 class="card-title">Nurse Profile</h4>
-            <p><strong>Qualification:</strong> {{ nurse_profile.qualification }}</p>
-            <p><strong>Shift:</strong> {{ nurse_profile.shift }}</p>
-            <p><strong>Hourly Rate:</strong> {{ nurse_profile.hourly_rate }}</p>
+          <h4 class="card-title">Nurse Profile</h4>
+          <p>
+            <strong>Qualification:</strong> {{ nurse_profile.qualification }}
+          </p>
+          <p>
+            <strong>Shift:</strong> {{ nurse_profile.shift }}
+          </p>
+          <p>
+            <strong>Hourly Rate:</strong> {{ nurse_profile.hourly_rate }}
+          </p>
         </div>
-    </div>
+      </div>
     {% endif %}
-</div>
+  </div>
 {% endblock %}

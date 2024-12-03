@@ -135,7 +135,6 @@
                     return;
                 }
 
-                // Optional: Implement service filtering based on doctor here
             });
         }
     });
@@ -213,11 +212,11 @@
     });
     
     document.addEventListener('DOMContentLoaded', function () {
-        const medicineSelect = document.getElementById('id_medicine'); // Medicine dropdown
-        const dosageField = document.getElementById('dosage');         // Dosage input field
-        const priceField = document.getElementById('price');           // Unit price input field
-        const quantityField = document.getElementById('id_quantity');  // Quantity input field
-        const totalCostField = document.getElementById('total-cost');  // Total cost input field
+        const medicineSelect = document.getElementById('id_medicine'); 
+        const dosageField = document.getElementById('dosage');         
+        const priceField = document.getElementById('price');           
+        const quantityField = document.getElementById('id_quantity');  
+        const totalCostField = document.getElementById('total-cost');  
     
         // Fetch dosage and price when a medicine is selected
         medicineSelect.addEventListener('change', function () {
@@ -264,24 +263,24 @@
         quantityField.addEventListener('input', calculateTotalCost);
     
         function calculateTotalCost() {
-            const price = parseFloat(priceField.value) || 0; // Unit price
-            const quantity = parseInt(quantityField.value) || 0; // Quantity
-            const totalCost = price * quantity; // Calculate total cost
-            totalCostField.value = totalCost.toFixed(2); // Update total cost field
+            const price = parseFloat(priceField.value) || 0; 
+            const quantity = parseInt(quantityField.value) || 0; 
+            const totalCost = price * quantity; 
+            totalCostField.value = totalCost.toFixed(2);
         }
     });
     
     
     document.addEventListener("DOMContentLoaded", function () {
         const totalCostElement = document.getElementById("total-cost");
-        const updateTotalCostEndpoint = `/appointments/update-total-cost/`; // Backend endpoint to update the cost
+        const updateTotalCostEndpoint = `/appointments/update-total-cost/`; 
     
         function updateAppointmentTotalCost(appointmentId, additionalCost) {
             fetch(`${updateTotalCostEndpoint}${appointmentId}/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken, // Ensure CSRF token is sent
+                    "X-CSRFToken": csrfToken, 
                 },
                 body: JSON.stringify({ additional_cost: additionalCost }),
             })
@@ -300,13 +299,12 @@
                 });
         }
     
-        // Call this when a new service/medication is added
         const addMedicationForm = document.getElementById("add-medication-form");
         if (addMedicationForm) {
             addMedicationForm.addEventListener("submit", function (event) {
                 const quantity = parseInt(document.getElementById("id_quantity").value, 10);
                 const price = parseFloat(document.getElementById("price").value);
-                const appointmentId = addMedicationForm.dataset.appointmentId; // Pass appointment ID dynamically
+                const appointmentId = addMedicationForm.dataset.appointmentId; 
     
                 const additionalCost = quantity * price;
     
