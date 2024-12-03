@@ -13,7 +13,7 @@ from .models import CustomUser, Role
 from .forms import CustomUserCreationForm, CustomUserEditForm, RoleCreationForm
 from appointments.models import Appointment, IPDAdmission, Invoice
 from patient.models import Patient
-from departments.models import DoctorProfile, NurseProfile
+from departments.models import Bed, Department, DoctorProfile, NurseProfile
 from inventory.models import Medication, Consumable
 from .decorators import role_required
 
@@ -167,18 +167,33 @@ def doctor_dashboard(request):
     }
     return render(request, 'main/dashboards/doctor_dashboard.html', context)
 
-
-
 @role_required(['Nurse'])
 def nurse_dashboard(request):
-    if not request.user.roles.filter(name='Nurse').exists():
-        return HttpResponseForbidden("Access Denied")
+    # Fetch departments where the nurse is assigned
+    departments = Department.objects.filter(nurses=request.user)
 
-    data = {
-        "assigned_patients": Patient.objects.filter(appointments__nurse=request.user).count(),
-        "appointments_today": Appointment.objects.filter(nurse=request.user, appointment_date__date=now().date()).count(),
+    # Fetch assigned patients via departments
+    assigned_patients = Patient.objects.filter(
+        ipdadmission_related__department__in=departments
+    ).distinct()
+
+    # Fetch admitted IPD patients linked to the nurse's departments
+    admitted_patients = IPDAdmission.objects.filter(
+        department__in=departments, status='admitted'
+    ).select_related('patient', 'room', 'floor')
+
+    # Fetch today's appointments linked to the nurse's departments
+    todays_appointments = Appointment.objects.filter(
+        department__in=departments,
+        appointment_date__date=now().date()
+    ).select_related('patient')
+
+    context = {
+        'assigned_patients': assigned_patients,
+        'admitted_patients': admitted_patients,
+        'todays_appointments': todays_appointments,
     }
-    return render(request, 'main/dashboards/nurse_dashboard.html', data)
+    return render(request, 'main/dashboards/nurse_dashboard.html', context)
 
 @role_required(['Receptionist'])
 def receptionist_dashboard(request):

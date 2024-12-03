@@ -23,11 +23,10 @@ urlpatterns = [
     path('role_view/<int:role_id>/', views.view_role, name='view_role'),  
 
     # Dashboards
-    path('admin_dashboard', views.admin_dashboard, name='admin_dashboard'),
-    path('doctor_dashboard', views.doctor_dashboard, name='doctor_dashboard'),
-    path('nurse_dashboard', views.nurse_dashboard, name='nurse_dashboard'),
-    path('receptionist_dashboard', views.receptionist_dashboard, name='receptionist_dashboard'),
-    
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('doctor_dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    path('nurse_dashboard/', views.nurse_dashboard, name='nurse_dashboard'),
+    path('receptionist_dashboard/', views.receptionist_dashboard, name='receptionist_dashboard'),
     # Notifications
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/mark-as-read/', views.notification_as_read, name='mark_notifications_as_read'),

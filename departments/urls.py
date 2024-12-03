@@ -41,6 +41,7 @@ urlpatterns = [
     
     # Bed Manangement
     path('beds/', views.list_bed, name='list_bed'),
+    path('beds/<int:bed_id>/', views.bed_detail, name='bed_detail'),
     path('beds/add/', views.add_bed, name='add_bed'),
     path('beds/edit/<int:bed_id>/', views.edit_bed, name='edit_bed'),
     path('beds/delete/<int:bed_id>/', views.delete_bed, name='delete_bed'),

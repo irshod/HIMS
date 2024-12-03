@@ -1,0 +1,30 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+Bed Details | HIMS
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Bed Details</h1>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Bed {{ bed.bed_number }}</h5>
+            <p><strong>Room:</strong> {{ bed.room.name }}</p>
+            <p><strong>Floor:</strong> {{ bed.room.floor.floor_number }}</p>
+            <p><strong>Department:</strong> {{ bed.room.department.name }}</p>
+            <p><strong>Status:</strong> {{ bed.status|title }}</p>
+            <p>
+                <strong>Patient:</strong>
+                {% if bed.current_patient %}
+                    <a href="{% url 'patient_profile' bed.current_patient.id %}">
+                        {{ bed.current_patient.first_name }} {{ bed.current_patient.last_name }}
+                    </a>
+                {% else %}
+                    <span class="text-muted">No Patient Assigned</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

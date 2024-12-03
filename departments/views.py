@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+
+from appointments.models import IPDAdmission
+from main.decorators import role_required
 from .models import Service, Department, DoctorProfile, NurseProfile, StaffAvailability, Floor, Room, Bed
 from .forms import ServiceForm, DepartmentForm, DoctorProfileForm, NurseProfileForm, FloorForm, RoomForm, BedForm
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 
 
 
@@ -378,6 +381,28 @@ def list_bed(request):
         beds_by_floor[floor_number][room].append(bed)
 
     return render(request, 'beds/bed_list.html', {'beds_by_floor': beds_by_floor})
+
+
+
+@role_required(['Admin', 'Doctor', 'Nurse'])
+def bed_detail(request, bed_id):
+    bed = get_object_or_404(Bed, id=bed_id)
+
+    # Check if there is an active IPDAdmission associated with the bed
+    ipd_admission = IPDAdmission.objects.filter(bed=bed, status='admitted').first()
+
+    if ipd_admission:
+        bed.status = 'occupied'
+    else:
+        bed.status = 'available'
+
+    context = {
+        'bed': bed,
+        'ipd_admission': ipd_admission,  # Pass the admission record if it exists
+    }
+    return render(request, 'beds/bed_detail.html', context)
+
+
 
 
 @login_required
