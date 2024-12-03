@@ -1,0 +1,209 @@
+### Main App
+#### Features: User Management, Role Management, Permissions
+```
+MAIN_APP
+BEGIN
+    DEFINE User model with fields: username, password, role, permissions
+    DEFINE Permission model with fields: name, description
+
+    FUNCTION create_user(username, password, role)
+        VALIDATE inputs
+        ADD user to database
+        RETURN user
+    
+    FUNCTION manage_permissions(user, permissions)
+        ASSIGN permissions to user
+        RETURN success
+    
+    FUNCTION create_role(role_name, permissions)
+        DEFINE new role
+        ASSIGN permissions to role
+        RETURN role
+
+    FUNCTION authenticate_user(username, password)
+        CHECK user in database
+        IF valid THEN
+            RETURN success
+        ELSE
+            RETURN failure
+    END FUNCTION
+END
+```
+
+### Department App
+#### Features: Manage Departments, Staff, and Services
+```
+DEPARTMENT_APP
+BEGIN
+    DEFINE Department model with fields: name, description, services
+    DEFINE Service model with fields: name, price, duration
+
+    FUNCTION create_department(department_name, description)
+        ADD department to database
+        RETURN department
+    
+    FUNCTION assign_user_to_department(user, department)
+        VALIDATE user role
+        ASSIGN user to department
+        RETURN success
+    
+    FUNCTION add_service_to_department(department, service_name, price, duration)
+        ADD service to department
+        RETURN success
+    
+    FUNCTION list_department_users(department)
+        FETCH users assigned to department
+        RETURN list of users
+END
+```
+
+### Patient App
+#### Features: Patient Registration, Treatment History, Prescriptions
+```
+PATIENT_APP
+BEGIN
+    DEFINE Patient model with fields: name, contact_info, type (OPD/IPD), history
+    DEFINE Prescription model with fields: patient, doctor, medications
+    DEFINE TreatmentHistory model with fields: patient, notes, date
+
+    FUNCTION register_patient(name, contact_info, type)
+        VALIDATE inputs
+        ADD patient to database
+        RETURN patient
+    
+    FUNCTION add_prescription(patient, doctor, medications)
+        VALIDATE doctor-patient relationship
+        CREATE prescription
+        RETURN prescription
+    
+    FUNCTION record_treatment(patient, notes)
+        ADD notes to treatment history
+        RETURN success
+    
+    FUNCTION view_patient_profile(patient_id)
+        FETCH patient data
+        RETURN patient profile
+END
+```
+
+### Appointment App
+#### Features: Schedule Appointments, Manage Status, Generate Invoices
+```
+APPOINTMENT_APP
+BEGIN
+    DEFINE Appointment model with fields: patient, department, doctor, service, status
+    DEFINE Invoice model with fields: appointment, amount, payment_status
+
+    FUNCTION schedule_appointment(patient, department, doctor, service, date)
+        VALIDATE availability of doctor and service
+        CREATE appointment
+        RETURN appointment
+    
+    FUNCTION manage_appointment_status(appointment, new_status)
+        UPDATE appointment status
+        RETURN success
+    
+    FUNCTION generate_invoice(appointment, services)
+        CALCULATE total cost
+        CREATE invoice
+        RETURN invoice
+    
+    FUNCTION track_payment(invoice, payment_status)
+        UPDATE payment status
+        RETURN success
+END
+```
+
+### Finance App
+#### Features: Payment Tracking, Salary Management, Reports
+```
+FINANCE_APP
+BEGIN
+    DEFINE Invoice model with fields: patient, total_amount, status
+    DEFINE Salary model with fields: user, base_salary, bonuses, deductions
+
+    FUNCTION confirm_payment(invoice_id)
+        FETCH invoice
+        UPDATE status to "Paid"
+        RETURN success
+    
+    FUNCTION calculate_staff_salary(user)
+        FETCH base_salary, bonuses, deductions
+        CALCULATE total_salary
+        RETURN total_salary
+    
+    FUNCTION generate_report(time_period)
+        FETCH all financial records in time_period
+        CALCULATE total income and expenses
+        RETURN report
+END
+```
+
+### Inventory App
+#### Features: CRUD Medications and Consumables
+```
+INVENTORY_APP
+BEGIN
+    DEFINE InventoryItem model with fields: name, stock_level, reorder_threshold, unit_price
+
+    FUNCTION add_inventory_item(name, stock_level, reorder_threshold, unit_price)
+        ADD item to inventory
+        RETURN item
+    
+    FUNCTION update_inventory_item(item_id, new_stock_level)
+        FETCH item
+        UPDATE stock_level
+        RETURN success
+    
+    FUNCTION track_low_stock()
+        FETCH items below reorder_threshold
+        RETURN list of low-stock items
+END
+```
+
+### IPD Module
+#### Features: Manage In-Patient Workflow, Medications, and Consumables
+```
+IPD_MODULE
+BEGIN
+    DEFINE InPatient model with fields: patient, room, bed, medications, status
+    DEFINE Medication model with fields: name, dosage, frequency, duration
+
+    FUNCTION admit_patient(patient, room, bed)
+        VALIDATE availability of bed
+        UPDATE patient status to "Admitted"
+        RETURN success
+    
+    FUNCTION prescribe_medication(patient, medication, dosage, frequency, duration)
+        ADD medication to patient profile
+        RETURN prescription
+    
+    FUNCTION discharge_patient(patient)
+        VALIDATE clearance of dues
+        UPDATE patient status to "Discharged"
+        RETURN success
+END
+```
+
+### Shared Workflow
+#### Linking All Apps Together
+```
+HIMS_WORKFLOW
+BEGIN
+    FUNCTION register_patient_and_schedule_appointment()
+        CALL register_patient()
+        CALL schedule_appointment()
+        RETURN success
+    
+    FUNCTION generate_invoice_and_track_payment(appointment_id)
+        FETCH appointment services
+        CALL generate_invoice()
+        CALL confirm_payment()
+        RETURN success
+    
+    FUNCTION manage_inventory_and_restock()
+        CALL track_low_stock()
+        IF low_stock_items THEN
+            INITIATE restocking process
+        RETURN success
+END 
