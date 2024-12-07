@@ -16,7 +16,7 @@ Make sure that the following are installed in your system:
 Setup Instructions
 
 Step 1: Clone the Repository
-$ git clone https://github.com/your-repo/hims.git
+$ git clone https://github.com/irshod/hims.git
 cd hims
 
 Step 2: Make and Activate a Virtual Environment
